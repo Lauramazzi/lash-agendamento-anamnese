@@ -265,6 +265,20 @@
     renderProducts();
     renderFinanceDashboard();
     initSettingsTab();
+
+    // Sincroniza o status da agenda (aberta/fechada) no cabeçalho
+    const isAberta = state.config.agendaAberta !== false;
+    const btnOpen = document.getElementById("btn-agenda-aberta");
+    const btnClose = document.getElementById("btn-agenda-fechada");
+    if (btnOpen && btnClose) {
+      if (isAberta) {
+        btnOpen.classList.add("active");
+        btnClose.classList.remove("active");
+      } else {
+        btnOpen.classList.remove("active");
+        btnClose.classList.add("active");
+      }
+    }
   }
 
   async function loadAllData() {
@@ -864,6 +878,91 @@
         console.error(err);
         showToast("Erro ao excluir agendamento.", 'error');
       }
+    }
+  };
+
+  // --- ABERTURA / FECHAMENTO DA AGENDA ---
+
+  window.setAgendaStatus = async function(isOpen) {
+    state.config.agendaAberta = isOpen;
+    
+    const btnOpen = document.getElementById("btn-agenda-aberta");
+    const btnClose = document.getElementById("btn-agenda-fechada");
+    
+    if (btnOpen && btnClose) {
+      if (isOpen) {
+        btnOpen.classList.add("active");
+        btnClose.classList.remove("active");
+      } else {
+        btnOpen.classList.remove("active");
+        btnClose.classList.add("active");
+      }
+    }
+    
+    try {
+      await db.saveConfig(state.config);
+      if (isOpen) {
+        showToast("Agenda online aberta para novos agendamentos!", 'success');
+      } else {
+        showToast("Agenda online fechada! Clientes não conseguirão agendar.", 'warning');
+      }
+    } catch(err) {
+      console.error(err);
+      showToast("Erro ao atualizar status da agenda.", 'error');
+    }
+  };
+
+  // --- BLOQUEIO RÁPIDO DE HORÁRIO ---
+
+  window.openQuickBlockModal = function() {
+    document.getElementById("qb-date").value = formatDateISO(state.selectedDate);
+    document.getElementById("qb-allday").checked = true;
+    toggleQuickBlockAllDay(true);
+    document.getElementById("quick-block-modal").classList.add("show");
+  };
+
+  window.closeQuickBlockModal = function() {
+    document.getElementById("quick-block-modal").classList.remove("show");
+    document.getElementById("quick-block-form").reset();
+  };
+
+  window.toggleQuickBlockAllDay = function(isChecked) {
+    const showTimes = !isChecked;
+    document.getElementById("qb-time-start-group").style.display = showTimes ? "block" : "none";
+    document.getElementById("qb-time-end-group").style.display = showTimes ? "block" : "none";
+    document.getElementById("qb-time-start").required = showTimes;
+    document.getElementById("qb-time-end").required = showTimes;
+  };
+
+  window.handleQuickBlock = async function(e) {
+    e.preventDefault();
+    const date = document.getElementById("qb-date").value;
+    const description = document.getElementById("qb-description").value.trim() || "Bloqueio de Agenda";
+    const allDay = document.getElementById("qb-allday").checked;
+    const start = document.getElementById("qb-time-start").value;
+    const end = document.getElementById("qb-time-end").value;
+
+    if (!date) return;
+
+    const blockItem = {
+      date: date,
+      description: description,
+      allDay: allDay,
+      startTime: allDay ? "" : start,
+      endTime: allDay ? "" : end
+    };
+
+    try {
+      await db.addBlockedDate(blockItem);
+      closeQuickBlockModal();
+      showToast("Horário bloqueado com sucesso!", 'success');
+      
+      await loadAllData();
+      refreshAgendaView();
+      if (typeof renderBlocksTable === "function") renderBlocksTable(); // Atualiza a tabela na aba de configurações se ela existir
+    } catch(err) {
+      console.error(err);
+      showToast("Erro ao bloquear horário.", 'error');
     }
   };
 

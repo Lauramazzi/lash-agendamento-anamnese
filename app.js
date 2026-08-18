@@ -86,6 +86,13 @@
       
       // Carrega Configurações
       state.config = await db.getConfig();
+
+      // Verifica se a agenda está fechada
+      if (state.config.agendaAberta === false) {
+        renderClosedAgenda();
+        return; // Interrompe a inicialização do formulário
+      }
+
       if (state.config.salonName) {
         if (dom.salonTitle) dom.salonTitle.textContent = state.config.salonName;
         document.title = "Agendamento & Anamnese — " + state.config.salonName;
@@ -812,6 +819,35 @@ Por favor, confirme se deu tudo certo no sistema. Obrigada!`;
 
   function esc(s) {
     return String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  }
+
+  function renderClosedAgenda() {
+    const bookingSection = document.getElementById("booking-section");
+    if (!bookingSection) return;
+    
+    const savebar = document.getElementById("savebar");
+    if (savebar) savebar.style.display = "none";
+    
+    const contactPhone = state.config.whatsappPhone || "5511999999999";
+    const textMsg = encodeURIComponent("Olá! Vi que a agenda online está fechada e gostaria de verificar os horários disponíveis por aqui.");
+    const url = `https://api.whatsapp.com/send?phone=${contactPhone}&text=${textMsg}`;
+    
+    bookingSection.innerHTML = `
+      <div class="section-card" style="text-align: center; padding: 50px 20px; max-width: 540px; margin: 0 auto; border: 1px solid var(--line); box-shadow: var(--shadow); border-radius: var(--radius); background: var(--card);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 48px; height: 48px; color: var(--bronze); margin: 0 auto 18px; display: block;">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <h3 style="font-family: 'Playfair Display', serif; font-size: 20px; color: var(--espresso); margin-bottom: 12px;">Agenda Online Fechada</h3>
+        <p style="font-size: 13.5px; color: var(--muted); line-height: 1.6; margin-bottom: 25px;">Nossos agendamentos online estão temporariamente suspensos. Entre em contato diretamente no WhatsApp para consultar vagas remanescentes ou lista de espera.</p>
+        <a href="${url}" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; justify-content: center; padding: 12px 24px; border-radius: 10px; font-weight: 600; font-family: 'Montserrat', sans-serif;">
+          <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.963C16.59 2.022 14.12 1 11.503 1c-5.442 0-9.866 4.372-9.87 9.802 0 1.96.516 3.868 1.5 5.58L2.082 20.91l4.565-1.756zM17.47 15.385c-.32-.16-1.89-.933-2.185-1.043-.294-.11-.508-.163-.722.163-.214.32-.83.1.043-1.018-.11-.183-.32-.236-.64-.396-1.862-.935-3.061-2.905-3.153-3.03-.092-.124-.008-.19.083-.281.082-.082.183-.214.275-.32.09-.107.12-.182.18-.305.06-.122.03-.23-.015-.32-.045-.09-.41-1.002-.56-1.368-.146-.358-.293-.31-.41-.315-.1-.004-.213-.005-.32-.005-.107 0-.28.04-.427.198-.145.16-.557.545-.557 1.328 0 .783.57 1.538.65 1.644.08.106 1.12 1.707 2.715 2.397.379.164.674.263.905.337.382.122.73.105 1.005.064.307-.046 1.89-.773 2.158-1.48.267-.706.267-1.312.187-1.438-.08-.126-.293-.207-.61-.368z"/>
+          </svg>
+          Falar no WhatsApp
+        </a>
+      </div>
+    `;
   }
 
   // Inicializa a aplicação

@@ -118,15 +118,24 @@
           <div id="list-bookings-view">
             <div class="section-card" style="margin-bottom: 12px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                   <h2 class="section-title" style="font-size: 22px;" id="agenda-section-title">Atendimentos Diários</h2>
                   <div class="agenda-view-selector">
                     <button type="button" class="selector-btn active" id="btn-view-day" onclick="setAgendaView('day')">Dia</button>
                     <button type="button" class="selector-btn" id="btn-view-week" onclick="setAgendaView('week')">Semana</button>
                   </div>
+                  
+                  <div style="display: inline-flex; align-items: center; gap: 8px; background: var(--white); border: 1px solid var(--line); padding: 4px 8px; border-radius: 8px;">
+                    <span style="font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;">Agenda Cliente:</span>
+                    <div class="agenda-status-selector" style="display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--white);">
+                      <button type="button" class="selector-btn active" id="btn-agenda-aberta" onclick="setAgendaStatus(true)" style="padding: 4px 10px; font-size: 11px;">Aberta</button>
+                      <button type="button" class="selector-btn" id="btn-agenda-fechada" onclick="setAgendaStatus(false)" style="padding: 4px 10px; font-size: 11px; color: var(--alert);">Fechada</button>
+                    </div>
+                  </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
                   <button type="button" class="btn btn-primary" onclick="openManualBookingModal()" style="font-size: 12.5px; padding: 8px 16px;">+ Novo Agendamento</button>
+                  <button type="button" class="btn btn-secondary" onclick="openQuickBlockModal()" style="font-size: 12.5px; padding: 8px 16px; color: var(--alert); border-color: var(--alert-bd);">+ Bloquear Horário</button>
                   <a href="index.html" target="_blank" class="btn btn-secondary" style="font-size: 12.5px; padding: 8px 16px;">Ver Página de Agendamento ↗</a>
                 </div>
               </div>
@@ -703,6 +712,44 @@
         <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
           <button type="button" class="btn btn-secondary" onclick="closeEditBookingModal()">Cancelar</button>
           <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE BLOQUEIO RÁPIDO DE HORÁRIO -->
+  <div class="modal-overlay" id="quick-block-modal">
+    <div class="modal-card">
+      <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Bloquear Horário ou Data</h3>
+      <form id="quick-block-form" onsubmit="handleQuickBlock(event)">
+        <div class="field">
+          <label class="lb" for="qb-date">Data do Bloqueio *</label>
+          <input type="date" id="qb-date" required>
+        </div>
+        <div class="field">
+          <label class="lb" for="qb-description">Motivo / Descrição</label>
+          <input type="text" id="qb-description" placeholder="Ex: Compromisso pessoal, folga, almoço longo">
+        </div>
+        <div style="display: flex; gap: 15px; margin: 15px 0; flex-wrap: wrap; align-items: center;">
+          <div class="switch-container" style="display: flex; gap: 8px; align-items: center;">
+            <label class="switch">
+              <input type="checkbox" id="qb-allday" checked onchange="toggleQuickBlockAllDay(this.checked)">
+              <span class="slider"></span>
+            </label>
+            <span>Bloquear Dia Inteiro</span>
+          </div>
+          <div class="field" id="qb-time-start-group" style="display: none; margin-bottom: 0; flex: 1;">
+            <label class="lb" style="font-size: 11px;">Das:</label>
+            <input type="time" id="qb-time-start">
+          </div>
+          <div class="field" id="qb-time-end-group" style="display: none; margin-bottom: 0; flex: 1;">
+            <label class="lb" style="font-size: 11px;">Até às:</label>
+            <input type="time" id="qb-time-end">
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary" onclick="closeQuickBlockModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" style="background: var(--espresso); border-color: var(--espresso);">Confirmar Bloqueio</button>
         </div>
       </form>
     </div>
