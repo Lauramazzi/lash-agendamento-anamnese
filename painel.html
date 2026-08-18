@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo | Lashroom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="frame"></div>
+
+  <!-- TELA DE LOGIN DO ADMINISTRADOR -->
+  <div id="gate">
+    <div class="gate-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 48px; height: 48px; color: var(--bronze); margin: 0 auto 15px; display: block;">
+        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3M15.5 7.5L14 9"/>
+      </svg>
+      <h2 class="brand" style="margin-top: 10px;">Lash<em>room</em></h2>
+      <div style="font-size: 13px; color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Digite seu e-mail e senha profissional</div>
+      
+      <input type="email" id="admin-email" placeholder="E-mail profissional" autocomplete="username" style="margin-bottom: 10px; padding: 12px; border-radius: 10px; border: 1px solid var(--line); width: 100%; font-family: 'Montserrat', sans-serif;">
+      <input type="password" id="pass" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')tryLogin()">
+      <button class="btn btn-primary" onclick="tryLogin()" style="width: 100%; margin-top: 10px;">Entrar no Painel</button>
+      <div class="gate-err" id="gateErr"></div>
+    </div>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL DO PAINEL (LAYOUT ESTILO APPBARBER) -->
+  <div id="panel" class="admin-layout" style="display: none;">
+    
+    <!-- COLUNA 1: SIDEBAR LATERAL ESQUERDA -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+      <div class="sidebar-brand">
+        <svg class="logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px; color: var(--bronze); margin-right: 8px; flex-shrink: 0;">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <h2>Lash<em>room</em></h2>
+      </div>
+      <div class="sidebar-profile">
+        <div class="profile-avatar">L</div>
+        <div class="profile-info">
+          <h3>Profissional</h3>
+          <p>Administrador</p>
+        </div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-item active" data-tab="atendimentos">
+          <svg class="menu-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          Agenda
+        </li>
+        <li class="menu-item" data-tab="clientes">
+          <svg class="menu-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Clientes
+        </li>
+        <li class="menu-item" data-tab="estoque">
+          <svg class="menu-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><polygon points="12 22.08 12 12 3 6.92 3 17.08 12 22.08"></polygon><polygon points="12 22.08 21 17.08 21 6.92 12 12 12 22.08"></polygon><polygon points="12 12 21 6.92 12 1.84 3 6.92 12 12"></polygon><line x1="12" y1="5.25" x2="12" y2="12"></line></svg>
+          Estoque
+        </li>
+        <li class="menu-item" data-tab="financeiro">
+          <svg class="menu-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          Financeiro
+        </li>
+        <li class="menu-item" data-tab="servicos">
+          <svg class="menu-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
+          Serviços
+        </li>
+        <li class="menu-item" data-tab="configuracoes">
+          <svg class="menu-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          Configurações
+        </li>
+      </ul>
+      <button class="btn btn-secondary sidebar-logout" id="admin-logout-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: calc(100% - 32px); margin: 16px;">
+        Sair
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </button>
+    </aside>
+
+    <!-- COLUNA 2: ÁREA CENTRAL DE CONTEÚDO -->
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <button class="sidebar-toggle" onclick="toggleSidebarMenu()">☰ Menu</button>
+        <span class="topbar-date" id="topbar-current-date">Carregando data...</span>
+      </header>
+
+      <main class="admin-body">
+        <!-- Banner de Demonstração -->
+        <div class="demo-banner" id="demoBanner" style="display: none; margin-bottom: 20px;">
+          <b>Modo de Demonstração (Local).</b> Os dados estão sendo salvos apenas no seu navegador. Configure as chaves do Firebase em `firebase-config.js` para sincronizar na nuvem.
+        </div>
+
+        <!-- ABA 1: AGENDA DE ATENDIMENTOS -->
+        <div id="panel-atendimentos" class="admin-panel active">
+          <!-- Estatísticas Rápidas -->
+          <div class="admin-stats-grid" style="margin-bottom: 20px;">
+            <div class="stat-card">
+              <div class="value" id="stat-total">0</div>
+              <div class="label">Total no Dia</div>
+            </div>
+            <div class="stat-card">
+              <div class="value" id="stat-confirmed" style="color: var(--ok);">0</div>
+              <div class="label">Confirmados</div>
+            </div>
+            <div class="stat-card">
+              <div class="value" id="stat-pending" style="color: var(--aten);">0</div>
+              <div class="label">Pendentes</div>
+            </div>
+            <div class="stat-card">
+              <div class="value" id="stat-cancelled" style="color: var(--alert);">0</div>
+              <div class="label">Cancelados</div>
+            </div>
+          </div>
+
+          <!-- Agenda de Atendimentos -->
+          <div id="list-bookings-view">
+            <div class="section-card" style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <h2 class="section-title" style="font-size: 22px;" id="agenda-section-title">Atendimentos Diários</h2>
+                  <div class="agenda-view-selector">
+                    <button type="button" class="selector-btn active" id="btn-view-day" onclick="setAgendaView('day')">Dia</button>
+                    <button type="button" class="selector-btn" id="btn-view-week" onclick="setAgendaView('week')">Semana</button>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" class="btn btn-primary" onclick="openManualBookingModal()" style="font-size: 12.5px; padding: 8px 16px;">+ Novo Agendamento</button>
+                  <a href="index.html" target="_blank" class="btn btn-secondary" style="font-size: 12.5px; padding: 8px 16px;">Ver Página de Agendamento ↗</a>
+                </div>
+              </div>
+
+              <!-- Navegador de Datas -->
+              <div class="admin-date-picker-bar">
+                <button class="date-nav-btn" id="btn-date-prev" type="button">◀ Dia Anterior</button>
+                <input type="date" id="admin-schedule-date" class="form-control">
+                <button class="date-nav-btn" id="btn-date-next" type="button">Próximo Dia ▶</button>
+                <button class="date-nav-btn" id="btn-date-today" style="margin-left: auto;">Hoje</button>
+              </div>
+
+              <!-- Visão Diária -->
+              <div id="agenda-day-view">
+                <div class="table-responsive">
+                  <table class="admin-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 80px;">Hora</th>
+                        <th>Cliente</th>
+                        <th>Serviço</th>
+                        <th>Preço</th>
+                        <th>Status</th>
+                        <th style="width: 140px; text-align: center;">Ficha de Anamnese</th>
+                      </tr>
+                    </thead>
+                    <tbody id="bookings-table-body">
+                      <!-- Carregado via JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Visão Semanal -->
+              <div id="agenda-week-view" style="display: none;">
+                <div class="weekly-grid" id="weekly-agenda-grid">
+                  <!-- Preenchido via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detalhe da Ficha de Anamnese e Atendimento -->
+          <div id="detail-booking-view" style="display: none;">
+            <div class="section-card">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--line); padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <div>
+                  <h2 class="section-title" id="d-clientName" style="font-size: 24px; margin-bottom: 4px;">Cliente</h2>
+                  <div style="font-size: 12.5px; color: var(--muted);" id="d-clientMeta">WhatsApp: --</div>
+                  
+                  <div style="display: flex; gap: 8px; align-items: center; margin-top: 10px;">
+                    <button class="btn btn-primary" onclick="openEditBookingModal()" style="font-size: 11px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 5px;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                      Editar Dados
+                    </button>
+                    <button class="btn btn-secondary" onclick="deleteBookingConfirm()" style="font-size: 11px; padding: 6px 12px; color: var(--alert); border-color: var(--alert-bd);">
+                      Excluir Agendamento
+                    </button>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                  <button class="btn btn-secondary" onclick="closeBookingDetail()" style="font-size: 12px; padding: 6px 12px;">Voltar para Agenda</button>
+                  <select id="d-status-select" class="form-control" style="font-size: 12px; padding: 6px 10px; width: 150px;">
+                    <option value="Pendente">Pendente</option>
+                    <option value="Confirmado">Confirmado</option>
+                    <option value="Concluído">Concluído</option>
+                    <option value="Cancelado">Cancelado</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Alertas Médicos / Chips -->
+              <div style="margin-bottom: 20px;">
+                <h4 style="font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Alertas de Saúde e Observações</h4>
+                <div class="attention-chips" id="d-attention-chips">
+                  <!-- Chips carregados via JS -->
+                </div>
+              </div>
+
+              <!-- Seções de Anamnese -->
+              <div id="d-anamnese-sections">
+                <!-- Dados Cadastrais, Saúde, Rotina, Termo e Assinatura carregados via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 1.5: CLIENTES & FICHAS -->
+        <div id="panel-clientes" class="admin-panel">
+          <div class="section-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+              <h2 class="section-title">Clientes e Fichas de Anamnese</h2>
+              <div class="search-input-wrapper" style="max-width: 300px; width: 100%;">
+                <input type="text" id="client-search" placeholder="Pesquisar cliente por nome..." oninput="renderClientsList()">
+              </div>
+            </div>
+            <div class="count-label" id="clients-count">0 clientes encontradas</div>
+            
+            <div class="clients-grid" id="clients-list-container">
+              <!-- Preenchido via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 1.7: GESTÃO DE ESTOQUE -->
+        <div id="panel-estoque" class="admin-panel">
+          <div class="section-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+              <h2 class="section-title">Estoque de Produtos</h2>
+              <button class="btn btn-primary" onclick="showAddProductForm()" style="font-size: 13px; padding: 10px 18px;">+ Novo Produto</button>
+            </div>
+            
+            <!-- Editor de Produtos -->
+            <div class="editor-section" id="product-form-section" style="display: none; margin-bottom: 20px;">
+              <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;" id="product-form-title">Cadastrar Novo Produto</h3>
+              <form id="product-editor-form" onsubmit="handleSaveProduct(event)">
+                <input type="hidden" id="edit-product-id">
+                <div class="field">
+                  <label class="lb" for="edit-product-name">Nome do Produto *</label>
+                  <input type="text" id="edit-product-name" required placeholder="Ex: Cílios Curvatura D 0.07">
+                </div>
+                <div class="editor-grid">
+                  <div class="field">
+                    <label class="lb" for="edit-product-cost">Preço de Custo (R$) *</label>
+                    <input type="number" id="edit-product-cost" step="0.01" required placeholder="15.00">
+                  </div>
+                  <div class="field">
+                    <label class="lb" for="edit-product-sell">Preço de Venda (R$) *</label>
+                    <input type="number" id="edit-product-sell" step="0.01" required placeholder="35.00">
+                  </div>
+                  <div class="field">
+                    <label class="lb" for="edit-product-qty">Quantidade Inicial *</label>
+                    <input type="number" id="edit-product-qty" required placeholder="10">
+                  </div>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+                  <button type="button" class="btn btn-secondary" onclick="hideProductForm()">Cancelar</button>
+                  <button type="submit" class="btn btn-primary">Salvar Produto</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="stock-grid" id="products-list-container">
+              <!-- Carregado via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 1.8: FINANCEIRO & FATURAMENTO -->
+        <div id="panel-financeiro" class="admin-panel">
+          <!-- Navegação de sub-abas do financeiro -->
+          <div class="finance-tabs-nav">
+            <button class="finance-tab-btn active" id="f-tab-caixa" onclick="setFinanceSubTab('caixa')">Fluxo de Caixa</button>
+            <button class="finance-tab-btn" id="f-tab-closings" onclick="setFinanceSubTab('closings')">Histórico de Fechamentos</button>
+          </div>
+
+          <!-- Sub-aba 1: Caixa e Lançamentos -->
+          <div id="subpanel-finance-caixa" class="finance-subpanel">
+            <div class="finance-stats-grid">
+              <div class="stat-card" style="border-left: 4px solid var(--ok);">
+                <div class="value" id="f-stat-receitas" style="color: var(--ok);">R$ 0,00</div>
+                <div class="label">Receitas do Dia</div>
+              </div>
+              <div class="stat-card" style="border-left: 4px solid var(--alert);">
+                <div class="value" id="f-stat-despesas" style="color: var(--alert);">R$ 0,00</div>
+                <div class="label">Despesas do Dia</div>
+              </div>
+              <div class="stat-card" style="border-left: 4px solid var(--bronze);">
+                <div class="value" id="f-stat-saldo">R$ 0,00</div>
+                <div class="label">Saldo Atual</div>
+              </div>
+            </div>
+
+            <div class="editor-grid" style="gap: 20px; align-items: start; margin-bottom: 20px;">
+              <!-- Registrar Lançamento -->
+              <div class="section-card" style="margin-bottom: 0;">
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Lançamento Manual</h3>
+                <form id="cash-transaction-form" onsubmit="handleNewTransaction(event)">
+                  <div class="field">
+                    <label class="lb" for="t-description">Descrição *</label>
+                    <input type="text" id="t-description" required placeholder="Ex: Compra de Microbrush ou Venda de Produto">
+                  </div>
+                  <div class="editor-grid">
+                    <div class="field">
+                      <label class="lb" for="t-type">Tipo *</label>
+                      <select id="t-type" required>
+                        <option value="Receita">Receita (Entrada)</option>
+                        <option value="Despesa">Despesa (Saída)</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label class="lb" for="t-value">Valor (R$) *</label>
+                      <input type="number" id="t-value" step="0.01" required placeholder="50.00">
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary" style="width: 100%;">Registrar Lançamento</button>
+                </form>
+              </div>
+
+              <!-- Fechamento de Caixa -->
+              <div class="section-card" style="margin-bottom: 0; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Consolidação Diária</h3>
+                <p style="font-size: 13px; color: var(--muted); margin-bottom: 15px; line-height: 1.5;">Ao fechar o caixa, o saldo atual é consolidado no histórico. Novas vendas contarão para o próximo caixa.</p>
+                <button type="button" onclick="handleCloseCaixa()" class="btn btn-primary" style="width: 100%; background: var(--espresso); border-color: var(--espresso);">Realizar Fechamento de Caixa</button>
+              </div>
+            </div>
+
+            <!-- Movimentações do Dia -->
+            <div class="section-card">
+              <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 10px;">Movimentações do Dia</h3>
+              <div class="transaction-list" id="transactions-list-container">
+                <!-- Carregado via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub-aba 2: Histórico de Fechamento -->
+          <div id="subpanel-finance-closings" class="finance-subpanel" style="display: none;">
+            <div class="section-card">
+              <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Histórico de Caixas Fechados</h3>
+              <div class="table-responsive">
+                <table class="closings-table">
+                  <thead>
+                    <tr>
+                      <th>Data de Fechamento</th>
+                      <th>Saldo Inicial</th>
+                      <th>Receitas/Despesas</th>
+                      <th>Saldo Final</th>
+                      <th>Consolidado por</th>
+                    </tr>
+                  </thead>
+                  <tbody id="closings-table-body">
+                    <!-- Carregado via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 2: GERENCIAMENTO DE SERVIÇOS -->
+        <div id="panel-servicos" class="admin-panel">
+          <!-- Editor de Serviços -->
+          <div class="editor-section" id="service-form-section" style="display: none;">
+            <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;" id="service-form-title">Cadastrar Novo Serviço</h3>
+            <form id="service-editor-form">
+              <input type="hidden" id="edit-service-id">
+              <div class="editor-grid">
+                <div class="field">
+                  <label class="lb" for="edit-service-name">Nome do Serviço *</label>
+                  <input type="text" id="edit-service-name" placeholder="Ex: Cílios Clássico Fio a Fio" required>
+                </div>
+                <div class="field">
+                  <div class="editor-grid" style="gap: 10px;">
+                    <div>
+                      <label class="lb" for="edit-service-price">Preço (R$) *</label>
+                      <input type="number" id="edit-service-price" step="0.01" placeholder="120.00" required>
+                    </div>
+                    <div>
+                      <label class="lb" for="edit-service-duration">Duração (Minutos) *</label>
+                      <input type="number" id="edit-service-duration" step="10" placeholder="90" required>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="field" style="margin-top: 10px;">
+                <label class="lb" for="edit-service-description">Descrição Completa</label>
+                <textarea id="edit-service-description" rows="3" placeholder="Descrição curta do serviço e materiais usados"></textarea>
+              </div>
+              <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+                <button type="button" class="btn btn-secondary" onclick="hideServiceForm()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar Serviço</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Lista de Serviços -->
+          <div class="section-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h2 class="section-title">Serviços Oferecidos</h2>
+              <button class="btn btn-primary" onclick="showAddServiceForm()" style="font-size: 13px; padding: 10px 18px;">+ Novo Serviço</button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Nome do Serviço</th>
+                    <th style="width: 100px;">Preço</th>
+                    <th style="width: 100px;">Duração</th>
+                    <th>Descrição</th>
+                    <th style="width: 120px; text-align: center;">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="services-table-body">
+                  <!-- Carregado via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 3: CONFIGURAÇÕES DO ESTÚDIO -->
+        <div id="panel-configuracoes" class="admin-panel">
+          <div class="config-container">
+            <div class="config-tabs-nav">
+              <button class="config-tab-btn active" data-subtab="geral">Geral</button>
+              <button class="config-tab-btn" data-subtab="expediente">Expediente</button>
+              <button class="config-tab-btn" data-subtab="bloqueios">Bloqueios de Data</button>
+            </div>
+
+            <!-- Sub-Aba 3.1: Configurações Gerais -->
+            <div id="subpanel-geral" class="sub-panel active">
+              <div class="section-card">
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Dados do Estúdio</h3>
+                <form id="general-config-form">
+                  <div class="field">
+                    <label class="lb" for="config-salon-name">Nome do Estúdio / Marca *</label>
+                    <input type="text" id="config-salon-name" required placeholder="Lashroom">
+                  </div>
+                  <div class="field">
+                    <label class="lb" for="config-whatsapp-phone">Celular WhatsApp (Confirmações) *</label>
+                    <input type="text" id="config-whatsapp-phone" required placeholder="Ex: 5511999999999">
+                    <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Código de área + número sem espaços (Ex: 5511999999999).</div>
+                  </div>
+                  <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Salvar Dados</button>
+                </form>
+              </div>
+
+              <!-- Alterar Senha -->
+              <div class="section-card">
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Segurança (Senha do Painel)</h3>
+                <form id="password-change-form">
+                  <div class="editor-grid">
+                    <div class="field">
+                      <label class="lb" for="new-password">Nova Senha *</label>
+                      <input type="password" id="new-password" required placeholder="Min. 4 caracteres">
+                    </div>
+                    <div class="field">
+                      <label class="lb" for="confirm-new-password">Confirmar Nova Senha *</label>
+                      <input type="password" id="confirm-new-password" required placeholder="Repita a nova senha">
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Alterar Senha do Painel</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Sub-Aba 3.2: Horários de Expediente -->
+            <div id="subpanel-expediente" class="sub-panel">
+              <div class="section-card">
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Dias e Horários de Funcionamento</h3>
+                <form id="working-hours-form">
+                  
+                  <div id="working-hours-container">
+                    <!-- Gerado via JS -->
+                  </div>
+
+                  <h3 style="font-family: 'Playfair Display', serif; font-size: 17px; margin: 25px 0 15px; border-top: 1px solid var(--line); padding-top: 20px;">Horário de Almoço (Intervalo)</h3>
+                  <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                    <label class="switch-container" style="display: flex; gap: 8px; align-items: center;">
+                      <label class="switch">
+                        <input type="checkbox" id="config-lunch-active">
+                        <span class="slider"></span>
+                      </label>
+                      <span>Ativar intervalo de almoço</span>
+                    </label>
+                    <div class="field" style="margin-bottom: 0; display: inline-flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 13px;">Das:</span>
+                      <input type="time" id="config-lunch-start" style="width: 100px;">
+                      <span style="font-size: 13px;">às:</span>
+                      <input type="time" id="config-lunch-end" style="width: 100px;">
+                    </div>
+                  </div>
+
+                  <div style="margin-top: 25px; text-align: right;">
+                    <button type="submit" class="btn btn-primary">Salvar Expediente</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Sub-Aba 3.3: Bloqueios de Data -->
+            <div id="subpanel-bloqueios" class="sub-panel">
+              <!-- Criador de Bloqueio -->
+              <div class="section-card">
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Bloquear Data (Folga / Feriado / Viagem)</h3>
+                <form id="block-creator-form">
+                  <div class="editor-grid">
+                    <div class="field" style="margin-bottom: 0;">
+                      <label class="lb">Data do Bloqueio *</label>
+                      <input type="date" id="block-date" required>
+                    </div>
+                    <div class="field" style="margin-bottom: 0;">
+                      <label class="lb">Descrição / Motivo</label>
+                      <input type="text" id="block-description" placeholder="Ex: Feriado de Tiradentes">
+                    </div>
+                  </div>
+
+                  <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; align-items: center;">
+                    <div class="switch-container" style="display: flex; gap: 8px; align-items: center;">
+                      <label class="switch">
+                        <input type="checkbox" id="block-allday" checked>
+                        <span class="slider"></span>
+                      </label>
+                      <span>Bloquear Dia Inteiro</span>
+                    </div>
+                    <div class="field" id="block-time-start-group" style="display: none; margin-bottom: 0;">
+                      <label class="lb" style="font-size: 11px;">Hora de Início</label>
+                      <input type="time" id="block-time-start">
+                    </div>
+                    <div class="field" id="block-time-end-group" style="display: none; margin-bottom: 0;">
+                      <label class="lb" style="font-size: 11px;">Hora de Fim</label>
+                      <input type="time" id="block-time-end">
+                    </div>
+                  </div>
+
+                  <div style="margin-top: 15px; text-align: right;">
+                    <button type="submit" class="btn btn-primary" style="background: var(--espresso); border-color: var(--espresso);">Adicionar Bloqueio de Agenda</button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Lista de Bloqueios -->
+              <div class="section-card">
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Bloqueios Ativos</h3>
+                <div class="table-responsive">
+                  <table class="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Horário</th>
+                        <th>Descrição</th>
+                        <th style="width: 100px; text-align: center;">Excluir</th>
+                      </tr>
+                    </thead>
+                    <tbody id="blocks-table-body">
+                      <!-- Carregado via JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer style="text-align: center; margin-top: 40px; font-size: 12px; color: var(--muted); padding-bottom: 40px;">
+        <div>&copy; 2026 Lashroom. Todos os direitos reservados.</div>
+      </footer>
+    </div>
+
+    <!-- COLUNA 3: COLUNA LATERAL DIREITA (Mini-Calendário Rápido e Legenda) -->
+    <aside class="admin-right-sidebar" id="agenda-right-sidebar">
+      <div class="right-sec">
+        <h3>Calendário Rápido</h3>
+        <input type="date" id="admin-sidebar-date" class="form-control" style="width: 100%; text-align: center; margin-top: 10px;">
+      </div>
+      <div class="right-sec" style="margin-top: 30px;">
+        <h3>Legendas de Status</h3>
+        <div class="legend-list">
+          <div class="legend-item"><span class="legend-dot pendente"></span> Pendente</div>
+          <div class="legend-item"><span class="legend-dot confirmado"></span> Confirmado</div>
+          <div class="legend-item"><span class="legend-dot concluido"></span> Concluído</div>
+          <div class="legend-item"><span class="legend-dot cancelado"></span> Cancelado</div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Carrega Firebase e Configurações -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <!-- MODAL DE AGENDAMENTO MANUAL -->
+  <div class="modal-overlay" id="manual-booking-modal">
+    <div class="modal-card">
+      <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Novo Agendamento Manual</h3>
+      <form id="manual-booking-form" onsubmit="handleManualBooking(event)">
+        <div class="field">
+          <label class="lb" for="m-client-name">Nome da Cliente *</label>
+          <input type="text" id="m-client-name" required placeholder="Nome completo da cliente">
+        </div>
+        <div class="editor-grid">
+          <div class="field">
+            <label class="lb" for="m-client-phone">WhatsApp *</label>
+            <input type="tel" id="m-client-phone" required placeholder="(00) 99999-9999">
+          </div>
+          <div class="field">
+            <label class="lb" for="m-client-birth">Nascimento</label>
+            <input type="date" id="m-client-birth">
+          </div>
+        </div>
+        <div class="field">
+          <label class="lb" for="m-service-select">Serviço *</label>
+          <select id="m-service-select" required>
+            <!-- Preenchido via JS -->
+          </select>
+        </div>
+        <div class="editor-grid">
+          <div class="field">
+            <label class="lb" for="m-booking-date">Data *</label>
+            <input type="date" id="m-booking-date" required>
+          </div>
+          <div class="field">
+            <label class="lb" for="m-booking-time">Horário *</label>
+            <input type="time" id="m-booking-time" required>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary" onclick="closeManualBookingModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Agendar Horário</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE EDIÇÃO DE AGENDAMENTO -->
+  <div class="modal-overlay" id="edit-booking-modal">
+    <div class="modal-card">
+      <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Editar Agendamento</h3>
+      <form id="edit-booking-form" onsubmit="handleEditBooking(event)">
+        <input type="hidden" id="e-booking-id">
+        <div class="field">
+          <label class="lb" for="e-client-name">Nome da Cliente *</label>
+          <input type="text" id="e-client-name" required placeholder="Nome completo da cliente">
+        </div>
+        <div class="editor-grid">
+          <div class="field">
+            <label class="lb" for="e-client-phone">WhatsApp *</label>
+            <input type="tel" id="e-client-phone" required placeholder="(00) 99999-9999">
+          </div>
+          <div class="field">
+            <label class="lb" for="e-client-birth">Nascimento</label>
+            <input type="date" id="e-client-birth">
+          </div>
+        </div>
+        <div class="editor-grid">
+          <div class="field">
+            <label class="lb" for="e-client-instagram">Instagram</label>
+            <input type="text" id="e-client-instagram" placeholder="Ex: @cliente">
+          </div>
+          <div class="field">
+            <label class="lb" for="e-client-origem">Como conheceu</label>
+            <input type="text" id="e-client-origem" placeholder="Ex: Instagram, Indicação">
+          </div>
+        </div>
+        <div class="editor-grid">
+          <div class="field">
+            <label class="lb" for="e-service-select">Serviço *</label>
+            <select id="e-service-select" required onchange="handleEditServiceChange()">
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+          <div class="field">
+            <label class="lb" for="e-service-price">Preço Cobrado (R$) *</label>
+            <input type="number" id="e-service-price" step="0.01" required placeholder="120.00">
+          </div>
+        </div>
+        <div class="editor-grid">
+          <div class="field">
+            <label class="lb" for="e-booking-date">Data *</label>
+            <input type="date" id="e-booking-date" required>
+          </div>
+          <div class="field">
+            <label class="lb" for="e-booking-time">Horário *</label>
+            <input type="time" id="e-booking-time" required>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary" onclick="closeEditBookingModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- NOTIFICAÇÕES TOAST -->
+  <div id="toast-container"></div>
+
+  <script src="db.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
