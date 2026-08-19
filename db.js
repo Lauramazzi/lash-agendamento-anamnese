@@ -4,10 +4,14 @@
  */
 (function() {
   const DEFAULT_SERVICES = [
-    { id: "s1", name: "Cílios Fio a Fio Clássico", price: 120.00, duration: 90, description: "Técnica clássica e natural, aplicando um cílio sintético em cada cílio natural. Perfeito para o dia a dia." },
-    { id: "s2", name: "Volume Russo", price: 180.00, duration: 150, description: "Cílios super volumosos e marcantes com fans artesanais. Ideal para quem busca destaque e glamour." },
-    { id: "s3", name: "Volume Híbrido", price: 150.00, duration: 120, description: "Mistura perfeita entre o clássico e o volume russo, proporcionando textura e volume moderado." },
-    { id: "s4", name: "Lash Lift + Hidratação", price: 100.00, duration: 60, description: "Curvatura natural dos seus próprios cílios com tratamento de nutrição e coloração. Dura até 6 semanas." }
+    { id: "s1", name: "Clássico", price: 130.00, duration: 90, description: "Aplicação individual de fios sintéticos premium sobre cada cílio natural. Efeito leve, clássico e sofisticado.", image: "images/cilios_classico.jpg" },
+    { id: "s2", name: "Brasileiro", price: 150.00, duration: 120, description: "Volume tecnológico com fios em formato Y. Proporciona preenchimento marcante, maciez e leveza.", image: "images/cilios_brasileiro.jpg" },
+    { id: "s3", name: "Brasileiro Marrom", price: 160.00, duration: 120, description: "Volume tecnológico em formato Y com fios marrons de luxo. Efeito extremamente natural, harmônico e suave.", image: "images/cilios_brasileiro_marrom.jpg" },
+    { id: "s4", name: "Egípcio", price: 160.00, duration: 120, description: "Volume tecnológico com fios em formato W. Garante textura volumosa de alta definição e durabilidade.", image: "images/cilios_egipcio.jpg" },
+    { id: "s5", name: "Egípcio Marrom", price: 170.00, duration: 120, description: "Volume em formato W na tonalidade marrom café premium. Perfeito para realçar o olhar com extrema elegância e suavidade.", image: "images/cilios_egipcio_marrom.jpg" },
+    { id: "s6", name: "Fox Eyes", price: 180.00, duration: 130, description: "Mapeamento estratégico que alonga o canto externo dos olhos, criando um efeito de olhar de raposa levantado e marcante.", image: "images/cilios_fox_eyes.jpg" },
+    { id: "s7", name: "Sirena", price: 180.00, duration: 130, description: "Estilo sereia com fios de espessura variada e alongamento externo marcante, proporcionando um olhar wispy, fluido e sedutor.", image: "images/cilios_sirena.jpg" },
+    { id: "s8", name: "Modelo", price: 50.00, duration: 150, description: "Serviço com valor promocional para criação de conteúdo. A modelo autoriza o uso de imagem/fotos para divulgação e se compromete a reportar qualquer necessidade de ajuste ou experiência.", image: "images/cilios_modelo.jpg" }
   ];
 
   const DEFAULT_PRODUCTS = [
@@ -89,7 +93,20 @@
   }
 
   function initLocal() {
-    if (!localStorage.getItem(STORAGE_KEYS.SERVICES)) saveLocal(STORAGE_KEYS.SERVICES, DEFAULT_SERVICES);
+    const localServices = getLocal(STORAGE_KEYS.SERVICES, []);
+    let needsReset = false;
+    if (localServices.length !== DEFAULT_SERVICES.length) {
+      needsReset = true;
+    } else {
+      const localNames = localServices.map(s => s.name);
+      needsReset = !DEFAULT_SERVICES.every(s => localNames.includes(s.name));
+    }
+    if (needsReset) {
+      saveLocal(STORAGE_KEYS.SERVICES, DEFAULT_SERVICES);
+    } else {
+      // Garante que os caminhos das imagens estejam atualizados se já existir o tamanho correto
+      saveLocal(STORAGE_KEYS.SERVICES, DEFAULT_SERVICES);
+    }
     if (!localStorage.getItem(STORAGE_KEYS.WORKING_HOURS)) saveLocal(STORAGE_KEYS.WORKING_HOURS, DEFAULT_WORKING_HOURS);
     if (!localStorage.getItem(STORAGE_KEYS.CONFIG)) saveLocal(STORAGE_KEYS.CONFIG, DEFAULT_CONFIG);
     if (!localStorage.getItem(STORAGE_KEYS.BLOCKED_DATES)) saveLocal(STORAGE_KEYS.BLOCKED_DATES, []);
@@ -106,12 +123,23 @@
     init: async function() {
       if (useFirebase) {
         try {
-          // Seed de Serviços
+          // Seed de Serviços (Força a sincronização com o catálogo de 8 técnicas exclusivo)
           const servicesSnapshot = await withTimeout(firestoreDb.collection("services").get(), 4000);
-          if (servicesSnapshot.empty) {
-            for (const service of DEFAULT_SERVICES) {
-              await firestoreDb.collection("services").doc(service.id).set(service);
-            }
+          let needsReset = false;
+          if (servicesSnapshot.empty || servicesSnapshot.size !== DEFAULT_SERVICES.length) {
+            needsReset = true;
+          } else {
+            const existingNames = [];
+            servicesSnapshot.forEach(doc => existingNames.push(doc.data().name));
+            needsReset = !DEFAULT_SERVICES.every(s => existingNames.includes(s.name));
+          }
+
+          if (needsReset) {
+            const batch = firestoreDb.batch();
+            servicesSnapshot.forEach(doc => batch.delete(doc.ref));
+            DEFAULT_SERVICES.forEach(s => batch.set(firestoreDb.collection("services").doc(s.id), s));
+            await batch.commit();
+            console.log("LashDB: Serviços sincronizados com sucesso no Firestore.");
           }
 
           // Seed de Configurações

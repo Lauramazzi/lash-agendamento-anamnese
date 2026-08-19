@@ -1762,34 +1762,42 @@ input:checked + .slider::before {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  padding: 20px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 20px;
+  align-items: stretch;
+  gap: 0;
   box-shadow: var(--shadow);
   transition: var(--transition);
+  overflow: hidden;
 }
 .catalog-item:hover {
   border-color: var(--bronze);
   box-shadow: 0 6px 20px rgba(110, 78, 50, 0.08);
 }
-@media (max-width: 580px) {
-  .catalog-item {
-    flex-direction: column;
-    text-align: center;
-    gap: 15px;
-  }
-  .catalog-price-action {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
+.catalog-item:hover .catalog-photo img {
+  transform: scale(1.05);
+}
+.catalog-photo {
+  width: 200px;
+  height: auto;
+  min-height: 180px;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+  border-right: 1px solid var(--line);
+}
+.catalog-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
 }
 .catalog-info {
   flex: 1;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .catalog-name {
   font-family: 'Playfair Display', serif;
@@ -1810,8 +1818,15 @@ input:checked + .slider::before {
   color: var(--mocha);
 }
 .catalog-price-action {
-  text-align: right;
+  padding: 20px 24px;
+  border-left: 1px dashed var(--line);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  min-width: 160px;
   flex-shrink: 0;
+  text-align: right;
 }
 .catalog-price {
   font-size: 22px;
@@ -1822,6 +1837,30 @@ input:checked + .slider::before {
 .catalog-btn {
   font-size: 13px;
   padding: 10px 20px;
+}
+@media (max-width: 600px) {
+  .catalog-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .catalog-photo {
+    width: 100%;
+    height: 180px;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .catalog-info {
+    padding: 16px 20px;
+    text-align: center;
+    align-items: center;
+  }
+  .catalog-price-action {
+    border-left: none;
+    border-top: 1px dashed var(--line);
+    align-items: center;
+    padding: 16px 20px;
+    width: 100%;
+  }
 }
 
 /* Área de Conversão (Wizard Wrapper) */

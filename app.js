@@ -141,15 +141,18 @@
     dom.servicesContainer.innerHTML = state.services.map(s => {
       const isSelected = state.selectedService && state.selectedService.id === s.id;
       return `
-        <div class="service-item ${isSelected ? 'selected' : ''}" data-id="${s.id}">
-          <div class="service-info">
-            <h3 class="service-name">${esc(s.name)}</h3>
-            <p class="service-desc">${esc(s.description || '')}</p>
-            <div class="service-meta">
+        <div class="service-item ${isSelected ? 'selected' : ''}" data-id="${s.id}" style="display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: var(--radius-md);">
+          <div class="service-thumbnail" style="width: 55px; height: 55px; border-radius: 6px; overflow: hidden; flex-shrink: 0; border: 1px solid var(--line); background: var(--cream-lite);">
+            <img src="${s.image || 'images/cilios_classico.jpg'}" alt="${esc(s.name)}" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div class="service-info" style="flex: 1; text-align: left;">
+            <h3 class="service-name" style="margin: 0 0 4px; font-size: 14.5px;">${esc(s.name)}</h3>
+            <p class="service-desc" style="margin: 0 0 4px; font-size: 12px; color: var(--muted);">${esc(s.description || '')}</p>
+            <div class="service-meta" style="font-size: 11px; color: var(--bronze-deep); font-weight: 500;">
               <span>⏱ ${s.duration} min</span>
             </div>
           </div>
-          <div class="service-price">R$ ${parseFloat(s.price).toFixed(2).replace('.', ',')}</div>
+          <div class="service-price" style="font-size: 15px; font-weight: bold; color: var(--espresso); flex-shrink: 0;">R$ ${parseFloat(s.price).toFixed(2).replace('.', ',')}</div>
           <div class="select-indicator"></div>
         </div>
       `;
@@ -178,6 +181,9 @@
     catalogContainer.innerHTML = state.services.map(s => {
       return `
         <div class="catalog-item">
+          <div class="catalog-photo">
+            <img src="${s.image || 'images/cilios_classico.jpg'}" alt="${esc(s.name)}">
+          </div>
           <div class="catalog-info">
             <h3 class="catalog-name">${esc(s.name)}</h3>
             <p class="catalog-desc">${esc(s.description || '')}</p>
@@ -634,6 +640,31 @@
       dom.btnNext.style.display = "inline-flex";
       dom.savebar.style.display = "block";
       dom.introArea.style.display = "block";
+
+      const modelContainer = document.getElementById("model-banner-container");
+      const imgCheckbox = document.getElementById("t_imagem");
+      if (modelContainer && imgCheckbox) {
+        const isModelo = state.selectedService && state.selectedService.id === "s8";
+        const labelSpan = imgCheckbox.nextElementSibling;
+        if (isModelo) {
+          modelContainer.innerHTML = `
+            <div style="background: #FDF3E7; border: 1px solid #E8C1A0; color: #8F5B30; margin-bottom: 20px; font-size: 13px; text-align: left; padding: 14px; border-radius: 8px; line-height: 1.5;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <b>Termo de Modelo:</b> Ao prosseguir, você declara estar ciente de que o serviço de Modelo possui valor reduzido para fins de criação de conteúdo. É obrigatório autorizar o uso de imagens/vídeos e assumir a responsabilidade de reportar qualquer ocorrência relacionada à experiência.
+            </div>
+          `;
+          imgCheckbox.required = true;
+          if (labelSpan) {
+            labelSpan.innerHTML = `Compreendo e aceito a responsabilidade de reportar qualquer situação relacionada à experiência e autorizo o uso irrestrito de fotos/vídeos dos meus olhos e procedimento para criação de conteúdo. <span class="req">*</span>`;
+          }
+        } else {
+          modelContainer.innerHTML = "";
+          imgCheckbox.required = false;
+          if (labelSpan) {
+            labelSpan.innerHTML = `Autorizo o uso de fotos do procedimento para divulgação. <span class="opt">(opcional)</span>`;
+          }
+        }
+      }
     } else if (state.currentStep === 4) {
       // Oculta rodapé de ações no sucesso
       dom.savebar.style.display = "none";
@@ -672,6 +703,12 @@
 
     if (!document.getElementById("t_veraz").checked || !document.getElementById("t_lgpd").checked) {
       showHint("É necessário aceitar os termos obrigatórios (veracidade e LGPD).");
+      return;
+    }
+
+    const imgCheck = document.getElementById("t_imagem");
+    if (imgCheck && imgCheck.required && !imgCheck.checked) {
+      showHint("Como modelo, é obrigatório autorizar o uso de imagens para prosseguir.");
       return;
     }
 
