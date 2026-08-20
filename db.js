@@ -123,7 +123,7 @@
     init: async function() {
       if (useFirebase) {
         try {
-          // Seed de Serviços (Força a sincronização com o catálogo de 8 técnicas exclusivo)
+          // 1. Seed de Serviços (Protegido contra erro de escrita de usuário não autenticado)
           const servicesSnapshot = await withTimeout(firestoreDb.collection("services").get(), 4000);
           let needsReset = false;
           if (servicesSnapshot.empty || servicesSnapshot.size !== DEFAULT_SERVICES.length) {
@@ -135,26 +135,38 @@
           }
 
           if (needsReset) {
-            const batch = firestoreDb.batch();
-            servicesSnapshot.forEach(doc => batch.delete(doc.ref));
-            DEFAULT_SERVICES.forEach(s => batch.set(firestoreDb.collection("services").doc(s.id), s));
-            await batch.commit();
-            console.log("LashDB: Serviços sincronizados com sucesso no Firestore.");
+            try {
+              const batch = firestoreDb.batch();
+              servicesSnapshot.forEach(doc => batch.delete(doc.ref));
+              DEFAULT_SERVICES.forEach(s => batch.set(firestoreDb.collection("services").doc(s.id), s));
+              await batch.commit();
+              console.log("LashDB: Serviços sincronizados com sucesso no Firestore.");
+            } catch (writeErr) {
+              console.warn("LashDB: Permissão de escrita negada para atualizar serviços (esperado para clientes não logados).");
+            }
           }
 
-          // Seed de Configurações
+          // 2. Seed de Configurações (Protegido contra erro de escrita)
           const configDoc = await withTimeout(firestoreDb.collection("settings").doc("general").get(), 4000);
           if (!configDoc.exists) {
-            await firestoreDb.collection("settings").doc("general").set(DEFAULT_CONFIG);
+            try {
+              await firestoreDb.collection("settings").doc("general").set(DEFAULT_CONFIG);
+            } catch (writeErr) {
+              console.warn("LashDB: Permissão de escrita negada para configurações (esperado para clientes não logados).");
+            }
           }
 
-          // Seed de Horários
+          // 3. Seed de Horários (Protegido contra erro de escrita)
           const hoursDoc = await withTimeout(firestoreDb.collection("settings").doc("workingHours").get(), 4000);
           if (!hoursDoc.exists) {
-            await firestoreDb.collection("settings").doc("workingHours").set(DEFAULT_WORKING_HOURS);
+            try {
+              await firestoreDb.collection("settings").doc("workingHours").set(DEFAULT_WORKING_HOURS);
+            } catch (writeErr) {
+              console.warn("LashDB: Permissão de escrita negada para expediente (esperado para clientes não logados).");
+            }
           }
 
-          // Seed de Produtos (Protegido para não derrubar a conexão antes do login)
+          // 4. Seed de Produtos (Protegido contra erros de leitura ou escrita)
           try {
             const productsSnapshot = await withTimeout(firestoreDb.collection("products").get(), 4000);
             if (productsSnapshot.empty) {
@@ -163,10 +175,10 @@
               }
             }
           } catch (prodErr) {
-            console.log("LashDB: Seed de produtos ignorado (aguardando autenticação).");
+            console.log("LashDB: Seed de produtos ignorado ou permissão negada.");
           }
         } catch (e) {
-          console.warn("LashDB: Erro ou lentidão de conexão no Firebase. Usando modo de segurança local.", e);
+          console.warn("LashDB: Erro fatal de conexão ou leitura no Firebase. Usando modo de segurança local.", e);
           useFirebase = false;
           initLocal();
         }
