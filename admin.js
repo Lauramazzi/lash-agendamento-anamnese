@@ -1512,7 +1512,11 @@
       showToast("Senha alterada com sucesso!", 'success');
     } catch(err) {
       console.error(err);
-      showToast("Erro ao alterar senha. Verifique se o tamanho é de pelo menos 6 caracteres.", 'error');
+      if (err && err.code === "auth/requires-recent-login") {
+        alert("Por motivos de segurança, o Firebase exige que você tenha feito login muito recentemente para alterar a senha. Por favor, clique no botão 'Sair' no final do menu esquerdo, faça login novamente com a senha antiga e tente alterar a senha em seguida.");
+      } else {
+        showToast("Erro ao alterar a senha. Verifique se tem mais de 6 caracteres e tente novamente.", 'error');
+      }
     }
   }
 
