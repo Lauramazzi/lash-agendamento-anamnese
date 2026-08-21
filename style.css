@@ -931,6 +931,167 @@ select {
   border: 1px solid var(--alert-bd);
 }
 
+/* Lista de Agenda Diária (cards em vez de tabela) */
+.agenda-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.agenda-row {
+  display: grid;
+  grid-template-columns: 56px 40px 1fr auto 18px;
+  grid-template-areas: "time avatar info status chevron";
+  align-items: center;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.agenda-row:hover {
+  border-color: var(--bronze);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+.agenda-row.pendente { border-left-color: var(--aten); }
+.agenda-row.confirmado { border-left-color: var(--ok); }
+.agenda-row.concluido { border-left-color: var(--espresso); }
+.agenda-row.cancelado { border-left-color: var(--alert); opacity: 0.55; }
+.agenda-row.cancelado .agenda-client { text-decoration: line-through; }
+.agenda-row.is-past:not(.cancelado) { opacity: 0.6; }
+.agenda-row.is-next {
+  border-color: var(--bronze);
+  box-shadow: 0 0 0 2px rgba(201, 122, 107, 0.18);
+}
+
+.agenda-time {
+  grid-area: time;
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--espresso);
+  text-align: center;
+  line-height: 1.1;
+}
+.agenda-time span {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-left: 1px;
+}
+.agenda-avatar {
+  grid-area: avatar;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--mocha), var(--bronze-deep));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  font-family: 'Playfair Display', serif;
+  flex-shrink: 0;
+}
+.agenda-info {
+  grid-area: info;
+  min-width: 0;
+}
+.agenda-client {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--espresso);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.agenda-service {
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+.agenda-alert-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--alert);
+  flex-shrink: 0;
+}
+.agenda-next-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--bronze-deep);
+  background: #FBF0E3;
+  border: 1px solid var(--bronze);
+  padding: 1px 7px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.agenda-status {
+  grid-area: status;
+  justify-self: end;
+}
+.agenda-chevron {
+  grid-area: chevron;
+  width: 16px;
+  height: 16px;
+  color: var(--line);
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+.agenda-row:hover .agenda-chevron {
+  color: var(--bronze);
+  transform: translateX(2px);
+}
+
+.agenda-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 50px 20px;
+  color: var(--muted);
+  text-align: center;
+  background: var(--card);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-md);
+}
+.agenda-empty svg {
+  width: 42px;
+  height: 42px;
+  color: var(--line);
+}
+.agenda-empty p {
+  font-size: 13.5px;
+}
+
+@media (max-width: 640px) {
+  .agenda-row {
+    grid-template-columns: 48px 36px 1fr 16px;
+    grid-template-areas:
+      "time avatar info chevron"
+      "time avatar status chevron";
+    row-gap: 6px;
+    padding: 12px;
+  }
+  .agenda-status {
+    justify-self: start;
+  }
+}
+
 /* Editor de Serviços e Configurações */
 .editor-section {
   background: var(--card);
@@ -1160,6 +1321,83 @@ input:checked + .slider::before {
   font-weight: 500;
   max-width: 60%;
 }
+/* Histórico de Atendimentos da Cliente */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.history-item {
+  display: grid;
+  grid-template-columns: 78px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 12.5px;
+}
+.history-item:hover {
+  border-color: var(--bronze);
+  background: var(--cream-lite);
+}
+.history-item.pendente { border-left-color: var(--aten); }
+.history-item.confirmado { border-left-color: var(--ok); }
+.history-item.concluido { border-left-color: var(--espresso); }
+.history-item.cancelado { border-left-color: var(--alert); opacity: 0.6; }
+.history-item.is-current {
+  border-color: var(--bronze);
+  background: #FBF0E3;
+  box-shadow: 0 0 0 2px rgba(201, 122, 107, 0.15);
+}
+.history-date {
+  font-weight: 600;
+  color: var(--espresso);
+  white-space: nowrap;
+}
+.history-service {
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.history-price {
+  font-weight: 600;
+  color: var(--bronze-deep);
+  white-space: nowrap;
+}
+.history-current-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: var(--bronze-deep);
+  background: #FBF0E3;
+  border: 1px solid var(--bronze);
+  padding: 1px 6px;
+  border-radius: 999px;
+  margin-left: 4px;
+}
+@media (max-width: 640px) {
+  .history-item {
+    grid-template-columns: 62px 1fr;
+    grid-template-areas:
+      "date service"
+      "price status";
+    row-gap: 5px;
+  }
+  .history-date { grid-area: date; }
+  .history-service { grid-area: service; }
+  .history-price { grid-area: price; }
+  .history-item .badge { grid-area: status; justify-self: start; }
+}
+
 .d-row .v.hl {
   color: var(--alert);
   font-weight: 600;

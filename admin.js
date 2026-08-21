@@ -496,24 +496,42 @@
     dom.statCancelled.textContent = dayBookings.filter(b => b.status === "Cancelado").length;
 
     if (dayBookings.length === 0) {
-      dom.bookingsTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 30px;">Nenhum agendamento para este dia.</td></tr>';
+      dom.bookingsTableBody.innerHTML = `
+        <div class="agenda-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <p>Nenhum agendamento para este dia.</p>
+        </div>
+      `;
       return;
     }
 
     dayBookings.sort((a, b) => String(a.bookingTime).localeCompare(String(b.bookingTime)));
 
+    const isToday = filterDate === formatDateISO(new Date());
+    const nowHHMM = new Date().toTimeString().slice(0, 5);
+    // Identifica o pr\u00f3ximo atendimento n\u00e3o cancelado do dia (apenas se for hoje)
+    const nextBooking = isToday
+      ? dayBookings.find(b => b.status !== "Cancelado" && String(b.bookingTime) >= nowHHMM)
+      : null;
+
     dom.bookingsTableBody.innerHTML = dayBookings.map(b => {
       const hasFlags = b.pontosAtencao && b.pontosAtencao !== "Nenhum";
       const statusClass = b.status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const isPast = isToday && statusClass !== "cancelado" && String(b.bookingTime) < nowHHMM;
+      const isNext = nextBooking && b.id === nextBooking.id;
+      const initials = (b.clientName || "?").trim().charAt(0).toUpperCase();
+
       return `
-        <tr class="${hasFlags ? 'hasalert' : ''}" onclick="openBookingDetail('${b.id}')" style="cursor: pointer;">
-          <td><strong>${b.bookingTime}h</strong></td>
-          <td>${esc(b.clientName)}</td>
-          <td>${esc(b.serviceName)}</td>
-          <td>R$ ${parseFloat(b.servicePrice).toFixed(2).replace('.', ',')}</td>
-          <td><span class="badge ${statusClass}">${b.status}</span></td>
-          <td style="text-align: center;"><button class="btn btn-secondary" style="font-size: 11px; padding: 6px 12px;">Visualizar Ficha</button></td>
-        </tr>
+        <div class="agenda-row ${statusClass} ${isPast ? 'is-past' : ''} ${isNext ? 'is-next' : ''}" onclick="openBookingDetail('${b.id}')">
+          <div class="agenda-time">${esc(b.bookingTime)}<span>h</span></div>
+          <div class="agenda-avatar">${esc(initials)}</div>
+          <div class="agenda-info">
+            <div class="agenda-client">${esc(b.clientName)}${hasFlags ? '<span class="agenda-alert-dot" title="Alerta de sa\u00fade"></span>' : ''}${isNext ? '<span class="agenda-next-tag">Pr\u00f3ximo</span>' : ''}</div>
+            <div class="agenda-service">${esc(b.serviceName)} \u00b7 R$ ${parseFloat(b.servicePrice).toFixed(2).replace('.', ',')}</div>
+          </div>
+          <div class="agenda-status"><span class="badge ${statusClass}">${b.status}</span></div>
+          <svg class="agenda-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
       `;
     }).join("");
   }
@@ -608,6 +626,41 @@
         <div class="d-row"><span class="k">Horário</span><span class="v"><strong>${booking.bookingTime}h</strong></span></div>
         <div class="d-row"><span class="k">Como conheceu o estúdio</span><span class="v">${esc(booking.clientOrigem || "Não informado")}</span></div>
         <div class="d-row"><span class="k">Instagram</span><span class="v">${booking.clientInstagram ? esc(booking.clientInstagram) : "Não informado"}</span></div>
+      </div>
+    `;
+
+    // --- HISTÓRICO DE ATENDIMENTOS DA CLIENTE ---
+    const clientKey = booking.clientPhone || booking.clientName;
+    const clientHistory = state.bookings
+      .filter(b => (b.clientPhone || b.clientName) === clientKey)
+      .sort((a, b) => (String(b.bookingDate) + b.bookingTime).localeCompare(String(a.bookingDate) + a.bookingTime));
+
+    const concluidos = clientHistory.filter(b => b.status === "Concluído");
+    const totalGasto = concluidos.reduce((sum, b) => sum + (parseFloat(b.servicePrice) || 0), 0);
+
+    const historyRows = clientHistory.map(b => {
+      const isCurrent = b.id === booking.id;
+      const statusClass = b.status.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+      const dateBr = new Date(b.bookingDate + "T00:00:00").toLocaleDateString("pt-BR");
+      return `
+        <div class="history-item ${statusClass} ${isCurrent ? 'is-current' : ''}" onclick="openBookingDetail('${b.id}')">
+          <div class="history-date">${dateBr}</div>
+          <div class="history-service">${esc(b.serviceName)}${isCurrent ? ' <span class="history-current-tag">Este atendimento</span>' : ''}</div>
+          <div class="history-price">R$ ${parseFloat(b.servicePrice || 0).toFixed(2).replace('.', ',')}</div>
+          <span class="badge ${statusClass}">${b.status}</span>
+        </div>
+      `;
+    }).join("");
+
+    sectionsHtml += `
+      <div class="d-sec">
+        <h4>Histórico de Atendimentos (${clientHistory.length})</h4>
+        <div style="font-size: 12px; color: var(--muted); margin-bottom: 12px; margin-top: -6px;">
+          ${concluidos.length} atendimento${concluidos.length !== 1 ? 's' : ''} concluído${concluidos.length !== 1 ? 's' : ''} · Total gasto: <strong style="color: var(--bronze-deep);">R$ ${totalGasto.toFixed(2).replace('.', ',')}</strong>
+        </div>
+        <div class="history-list">
+          ${historyRows}
+        </div>
       </div>
     `;
 
