@@ -50,9 +50,13 @@
 
   let useFirebase = false;
   let firestoreDb = null;
+  const isFirebaseConfigured = !!(window.FirebaseConfig && window.FirebaseConfig.apiKey && window.FirebaseConfig.apiKey !== "");
 
-  // Impoe timeout de 4 segundos nas requisições do Firebase
+  // Impoe timeout nas requisições do Firebase (15s em produção para conexões lentas)
   function withTimeout(promise, ms = 4000) {
+    if (isFirebaseConfigured) {
+      ms = 15000;
+    }
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         reject(new Error("Timeout de conexão com o banco de dados na nuvem (Firebase)"));
@@ -179,7 +183,7 @@
           }
         } catch (e) {
           console.warn("LashDB: Erro fatal de conexão ou leitura no Firebase. Usando modo de segurança local.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           initLocal();
         }
       } else {
@@ -238,7 +242,7 @@
           return list;
         } catch (e) {
           console.warn("LashDB: Fallback local para obter serviços.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           return getLocal(STORAGE_KEYS.SERVICES, DEFAULT_SERVICES);
         }
       } else {
@@ -255,7 +259,7 @@
           await batch.commit();
         } catch (e) {
           console.warn("LashDB: Fallback local para salvar serviços.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           saveLocal(STORAGE_KEYS.SERVICES, services);
         }
       } else {
@@ -271,7 +275,7 @@
           return doc.exists ? doc.data() : DEFAULT_CONFIG;
         } catch (e) {
           console.warn("LashDB: Fallback local para configurações.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           return getLocal(STORAGE_KEYS.CONFIG, DEFAULT_CONFIG);
         }
       } else {
@@ -284,7 +288,7 @@
           await firestoreDb.collection("settings").doc("general").set(config, { merge: true });
         } catch (e) {
           console.warn("LashDB: Fallback local para salvar configurações.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           saveLocal(STORAGE_KEYS.CONFIG, config);
         }
       } else {
@@ -300,7 +304,7 @@
           return doc.exists ? doc.data() : DEFAULT_WORKING_HOURS;
         } catch (e) {
           console.warn("LashDB: Fallback local para expediente.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           return getLocal(STORAGE_KEYS.WORKING_HOURS, DEFAULT_WORKING_HOURS);
         }
       } else {
@@ -313,7 +317,7 @@
           await firestoreDb.collection("settings").doc("workingHours").set(hours);
         } catch (e) {
           console.warn("LashDB: Fallback local para salvar expediente.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           saveLocal(STORAGE_KEYS.WORKING_HOURS, hours);
         }
       } else {
@@ -331,7 +335,7 @@
           return list;
         } catch (e) {
           console.warn("LashDB: Fallback local para bloqueios.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           return getLocal(STORAGE_KEYS.BLOCKED_DATES, []);
         }
       } else {
@@ -345,7 +349,7 @@
           await firestoreDb.collection("blocked_dates").doc(blockedItem.id).set(blockedItem);
         } catch (e) {
           console.warn("LashDB: Fallback local para adicionar bloqueio.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           const list = getLocal(STORAGE_KEYS.BLOCKED_DATES, []);
           list.push(blockedItem);
           saveLocal(STORAGE_KEYS.BLOCKED_DATES, list);
@@ -364,7 +368,7 @@
           return true;
         } catch (e) {
           console.warn("LashDB: Fallback local para excluir bloqueio.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           const list = getLocal(STORAGE_KEYS.BLOCKED_DATES, []);
           const filtered = list.filter(b => b.id !== id);
           saveLocal(STORAGE_KEYS.BLOCKED_DATES, filtered);
@@ -388,7 +392,7 @@
           return list.sort((a,b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
         } catch (e) {
           console.warn("LashDB: Fallback local para obter agendamentos.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           return getLocal(STORAGE_KEYS.BOOKINGS, []).sort((a,b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
         }
       } else {
@@ -406,7 +410,7 @@
           await firestoreDb.collection("bookings").doc(booking.id).set(booking);
         } catch (e) {
           console.warn("LashDB: Fallback local para adicionar agendamento.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
           list.push(booking);
           saveLocal(STORAGE_KEYS.BOOKINGS, list);
@@ -425,7 +429,7 @@
           return true;
         } catch (e) {
           console.warn("LashDB: Fallback local para atualizar agendamento.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
           const idx = list.findIndex(b => b.id === id);
           if (idx !== -1) {
@@ -453,7 +457,7 @@
           return true;
         } catch (e) {
           console.warn("LashDB: Fallback local para deletar agendamento.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
           const filtered = list.filter(b => b.id !== id);
           saveLocal(STORAGE_KEYS.BOOKINGS, filtered);
@@ -474,7 +478,7 @@
           return true;
         } catch (e) {
           console.warn("LashDB: Fallback local para atualizar agendamento completo.", e);
-          useFirebase = false;
+          if (!isFirebaseConfigured) useFirebase = false;
           const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
           const idx = list.findIndex(b => b.id === booking.id);
           if (idx !== -1) {
