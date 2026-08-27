@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="lash-ia.css">
 </head>
 <body>
   <div class="frame"></div>
@@ -179,6 +180,9 @@
                     </button>
                     <button class="btn btn-secondary" onclick="deleteBookingConfirm()" style="font-size: 11px; padding: 6px 12px; color: var(--alert); border-color: var(--alert-bd);">
                       Excluir Agendamento
+                    </button>
+                    <button class="btn-ia" id="btn-analise-ia" onclick="abrirAgenteIADaFicha()" style="font-size: 11px; padding: 6px 12px;">
+                      ✨ Análise IA de Cílios
                     </button>
                   </div>
                 </div>
@@ -752,5 +756,180 @@
 
   <script src="db.js"></script>
   <script src="admin.js"></script>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- AGENTE IA DE CÍLIOS                                        -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- Firebase Storage (necessário para salvar fotos) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+
+  <!-- Chave da Gemini API — substitua pelo valor real obtido em:  -->
+  <!-- https://aistudio.google.com/app/apikey                      -->
+  <script>window.GEMINI_API_KEY = '';</script>
+
+  <!-- Módulos do agente (ordem importa) -->
+  <script src="lash-agent.js"></script>
+  <script src="lash-camera.js"></script>
+  <script src="lash-simulator.js"></script>
+  <script src="lash-portfolio.js"></script>
+  <script src="lash-ui.js"></script>
+
+  <!-- Função auxiliar: lê o agendamento aberto e abre o agente IA -->
+  <script>
+    function abrirAgenteIADaFicha() {
+      // Tenta obter dados do agendamento atualmente exibido no painel
+      var nomeEl = document.getElementById('d-clientName');
+      var nome = nomeEl ? nomeEl.textContent.trim() : 'Cliente';
+
+      // Busca o ID do agendamento atual (admin.js armazena em currentBookingId)
+      var id = (typeof currentBookingId !== 'undefined' && currentBookingId)
+        ? currentBookingId
+        : ('cliente_' + Date.now());
+
+      abrirAgenteIA(id, nome);
+    }
+  </script>
+
+  <!-- MODAL DO AGENTE IA DE CÍLIOS -->
+  <div id="modal-lash-ia" class="lash-modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-label="Agente IA de Cílios">
+    <div class="lash-modal-box">
+
+      <!-- CABEÇALHO DO MODAL -->
+      <div class="lash-modal-header">
+        <div class="lash-modal-titulo">
+          <span class="lash-modal-icone">✨</span>
+          <span>Análise de Cílios com IA</span>
+        </div>
+        <button class="lash-modal-fechar" onclick="fecharAgenteIA()" aria-label="Fechar">✕</button>
+      </div>
+
+      <!-- STATUS BAR -->
+      <div class="lash-status-bar" id="lash-status-bar">
+        <div class="lash-status-passo ativo" id="passo-1">
+          <span class="lash-status-num">1</span>
+          <span>Câmera</span>
+        </div>
+        <div class="lash-status-linha"></div>
+        <div class="lash-status-passo" id="passo-2">
+          <span class="lash-status-num">2</span>
+          <span>Análise</span>
+        </div>
+        <div class="lash-status-linha"></div>
+        <div class="lash-status-passo" id="passo-3">
+          <span class="lash-status-num">3</span>
+          <span>Simulação</span>
+        </div>
+        <div class="lash-status-linha"></div>
+        <div class="lash-status-passo" id="passo-4">
+          <span class="lash-status-num">4</span>
+          <span>Resultado</span>
+        </div>
+      </div>
+
+      <!-- TELA 1: CÂMERA -->
+      <div id="tela-camera" class="lash-tela ativa">
+        <div class="lash-camera-area">
+          <video id="lash-video" autoplay playsinline muted class="lash-video"></video>
+          <div class="lash-camera-guia">
+            <div class="lash-guia-moldura">
+              <span class="lash-guia-texto">Posicione os olhos dentro da área</span>
+            </div>
+          </div>
+          <div id="lash-countdown" class="lash-countdown" style="display:none;"></div>
+        </div>
+
+        <div class="lash-consentimento">
+          <label class="lash-check-label">
+            <input type="checkbox" id="lash-consentimento-check" onchange="toggleBotaoCaptura()">
+            <span>A cliente autoriza o uso desta foto para análise por IA e armazenamento no seu perfil.</span>
+          </label>
+        </div>
+
+        <div class="lash-camera-controles">
+          <button class="lash-btn-secundario" onclick="alternarCamera()">🔄 Alternar Câmera</button>
+          <button class="lash-btn-principal" id="btn-capturar" onclick="capturarFoto()" disabled>
+            📷 Capturar Foto
+          </button>
+        </div>
+
+        <div class="lash-upload-alt">
+          <span>ou</span>
+          <label class="lash-btn-upload" for="lash-upload-input">📁 Carregar Foto</label>
+          <input type="file" id="lash-upload-input" accept="image/*" onchange="carregarFotoUpload(this)" style="display:none;">
+        </div>
+      </div>
+
+      <!-- TELA 2: ANÁLISE / SUGESTÕES -->
+      <div id="tela-sugestoes" class="lash-tela" style="display:none;">
+        <div id="lash-loading" class="lash-loading">
+          <div class="lash-spinner"></div>
+          <p id="lash-loading-msg">Analisando seus olhos com IA...</p>
+        </div>
+        <div id="lash-resultado-analise" style="display:none;">
+          <div class="lash-foto-preview-wrap">
+            <img id="lash-foto-capturada" class="lash-foto-preview" alt="Foto capturada">
+          </div>
+          <div class="lash-analise-card" id="lash-analise-card"></div>
+          <h3 class="lash-titulo-secao">✨ Sugestões para seu olhar</h3>
+          <div class="lash-sugestoes-grid" id="lash-sugestoes-top"></div>
+          <details class="lash-outros">
+            <summary>Ver todos os formatos disponíveis</summary>
+            <div class="lash-sugestoes-grid lash-grid-pequeno" id="lash-todos-formatos"></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- TELA 3: SIMULAÇÃO -->
+      <div id="tela-simulacao" class="lash-tela" style="display:none;">
+        <div id="lash-loading-sim" class="lash-loading">
+          <div class="lash-spinner"></div>
+          <p id="lash-loading-sim-msg">Gerando simulação visual...</p>
+        </div>
+        <div id="lash-antes-depois" class="lash-antes-depois" style="display:none;">
+          <div class="lash-lado">
+            <img id="lash-img-antes" class="lash-img-comparacao" alt="Antes">
+            <span class="lash-label-comparacao antes">ANTES</span>
+          </div>
+          <div class="lash-lado">
+            <img id="lash-img-depois" class="lash-img-comparacao" alt="Depois">
+            <span class="lash-label-comparacao depois" id="lash-label-estilo">DEPOIS</span>
+          </div>
+        </div>
+        <div class="lash-sim-controles" id="lash-sim-controles" style="display:none;">
+          <button class="lash-btn-secundario" onclick="voltarParaSugestoes()">← Escolher outro</button>
+          <button class="lash-btn-principal" onclick="confirmarEsalvar()">✓ Confirmar e Salvar</button>
+        </div>
+      </div>
+
+      <!-- TELA 4: RESULTADO FINAL -->
+      <div id="tela-resultado" class="lash-tela" style="display:none;">
+        <div class="lash-resultado-sucesso">
+          <div class="lash-check-grande">✓</div>
+          <h3>Resultado salvo com sucesso!</h3>
+          <p id="lash-resultado-desc"></p>
+        </div>
+        <img id="lash-portfolio-preview" class="lash-portfolio-preview" alt="Foto de portfólio" style="display:none;">
+        <div class="lash-resultado-acoes">
+          <button class="lash-btn-secundario" onclick="baixarPortfolio()">⬇ Baixar Portfólio</button>
+          <button class="lash-btn-secundario" onclick="verHistorico()">📋 Ver Histórico</button>
+          <button class="lash-btn-principal" onclick="fecharAgenteIA()">✓ Concluir</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL DE HISTÓRICO IA -->
+  <div id="modal-historico-ia" class="lash-modal-overlay" style="display:none;">
+    <div class="lash-modal-box lash-modal-historico">
+      <div class="lash-modal-header">
+        <div class="lash-modal-titulo">📋 Histórico de Análises IA</div>
+        <button class="lash-modal-fechar" onclick="fecharHistoricoIA()">✕</button>
+      </div>
+      <div id="lash-historico-lista" class="lash-historico-lista"></div>
+    </div>
+  </div>
+
 </body>
 </html>
