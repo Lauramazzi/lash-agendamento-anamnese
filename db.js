@@ -77,8 +77,15 @@
   // Verifica se o Firebase está configurado no arquivo firebase-config.js
   if (window.FirebaseConfig && window.FirebaseConfig.apiKey && window.FirebaseConfig.apiKey !== "") {
     try {
-      firebase.initializeApp(window.FirebaseConfig);
-      firestoreDb = firebase.firestore();
+      // Reutiliza o app se já foi iniciado (evita erro "App already exists")
+      let app;
+      if (firebase.apps && firebase.apps.length > 0) {
+        app = firebase.apps[0];
+        console.log("LashDB: Reutilizando instância Firebase existente.");
+      } else {
+        app = firebase.initializeApp(window.FirebaseConfig);
+      }
+      firestoreDb = firebase.firestore(app);
       useFirebase = true;
       console.log("LashDB: Conectado ao Firebase Cloud Firestore.");
     } catch (e) {
