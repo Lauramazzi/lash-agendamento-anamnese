@@ -194,27 +194,23 @@ Retorne APENAS este JSON (sem markdown):
 }`;
 
       try {
-        if (!this.geminiApiKey) {
-          this.beliefs.analiseOlhos = this._analiseDemo();
-          return;
-        }
-
-        const resp = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${this.geminiApiKey}`,
-          {
+        // Chama o proxy seguro do Netlify (chave nunca exposta no frontend)
+        const resp = await fetch('/.netlify/functions/gemini-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: prompt },
-                  { inlineData: { mimeType: 'image/jpeg', data: this.beliefs.imagemBase64.replace(/^data:image\/\w+;base64,/, '') } }
-                ]
-              }],
-              generationConfig: { temperature: 0.1, maxOutputTokens: 512 }
+              model: GEMINI_MODEL,
+              payload: {
+                contents: [{
+                  parts: [
+                    { text: prompt },
+                    { inlineData: { mimeType: 'image/jpeg', data: this.beliefs.imagemBase64.replace(/^data:image\/\w+;base64,/, '') } }
+                  ]
+                }],
+                generationConfig: { temperature: 0.1, maxOutputTokens: 512 }
+              }
             })
-          }
-        );
+          });
 
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
@@ -281,14 +277,12 @@ Retorne APENAS este JSON (sem markdown):
     async _simularFormato() {
       const estilo = LASH_STYLES[this.beliefs.formatoEscolhido];
 
-      // Tenta Gemini Imagen (inpainting)
-      if (this.geminiApiKey) {
-        const gerada = await this._geminiImagen(estilo);
-        if (gerada) {
-          this.beliefs.imagemSimulada = gerada;
-          this._emit('simulacao', { imagemSimulada: gerada, estilo, tipo: 'ia' });
-          return;
-        }
+      // Tenta Gemini Imagen via proxy seguro
+      const gerada = await this._geminiImagen(estilo);
+      if (gerada) {
+        this.beliefs.imagemSimulada = gerada;
+        this._emit('simulacao', { imagemSimulada: gerada, estilo, tipo: 'ia' });
+        return;
       }
 
       // Fallback: overlay via LashSimulator
@@ -306,20 +300,20 @@ Retorne APENAS este JSON (sem markdown):
       try {
         const prompt = `Adicione de forma REALISTA o estilo de cílios postiços "${estilo.nome}" (${estilo.descricao}) sobre os cílios superiores da pessoa na imagem. Mantenha o restante da foto idêntico. Resultado deve parecer foto real após aplicação profissional.`;
 
-        const resp = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${this.geminiApiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        const resp = await fetch('/.netlify/functions/gemini-proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'gemini-2.0-flash-preview-image-generation',
+            payload: {
               contents: [{ parts: [
                 { text: prompt },
                 { inlineData: { mimeType: 'image/jpeg', data: this.beliefs.imagemBase64.replace(/^data:image\/\w+;base64,/, '') } }
               ]}],
               generationConfig: { temperature: 0.3, maxOutputTokens: 4096, responseModalities: ['IMAGE', 'TEXT'] }
-            })
-          }
-        );
+            }
+          })
+        });
 
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
