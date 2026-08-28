@@ -48,6 +48,36 @@
     CLOSINGS: "lash_closings"
   };
 
+  // Remove tudo que não for dígito de um telefone (usado como chave de perfil do cliente)
+  function cleanPhoneDigits(s) {
+    return String(s || "").replace(/\D/g, "");
+  }
+
+  // Subconjunto de dados de um agendamento seguro para leitura pública (sem PII/saúde),
+  // usado para o cliente anônimo saber quais horários já estão ocupados.
+  function toAvailabilityDoc(booking) {
+    return {
+      id: booking.id,
+      bookingDate: booking.bookingDate,
+      bookingTime: booking.bookingTime,
+      serviceDuration: booking.serviceDuration,
+      status: booking.status
+    };
+  }
+
+  // Perfil público por telefone (usado apenas para auto-preencher a ficha de retorno).
+  // Só é legível por quem já sabe o telefone exato (get), nunca listável (list).
+  function toClientProfileDoc(booking) {
+    return {
+      clientName: booking.clientName || "",
+      clientBirth: booking.clientBirth || "",
+      clientInstagram: booking.clientInstagram || "",
+      clientOrigem: booking.clientOrigem || "",
+      anamnese: booking.anamnese || {},
+      timestamp: booking.timestamp || new Date().toISOString()
+    };
+  }
+
   let useFirebase = false;
   let firestoreDb = null;
   const isFirebaseConfigured = !!(window.FirebaseConfig && window.FirebaseConfig.apiKey && window.FirebaseConfig.apiKey !== "");
@@ -414,7 +444,14 @@
 
       if (useFirebase) {
         try {
-          await firestoreDb.collection("bookings").doc(booking.id).set(booking);
+          const batch = firestoreDb.batch();
+          batch.set(firestoreDb.collection("bookings").doc(booking.id), booking);
+          batch.set(firestoreDb.collection("availability").doc(booking.id), toAvailabilityDoc(booking));
+          const phone = cleanPhoneDigits(booking.clientPhone);
+          if (phone) {
+            batch.set(firestoreDb.collection("client_profiles").doc(phone), toClientProfileDoc(booking), { merge: true });
+          }
+          await batch.commit();
         } catch (e) {
           console.warn("LashDB: Fallback local para adicionar agendamento.", e);
           if (!isFirebaseConfigured) useFirebase = false;
@@ -432,7 +469,10 @@
     updateBookingStatus: async function(id, status) {
       if (useFirebase) {
         try {
-          await firestoreDb.collection("bookings").doc(id).update({ status: status });
+          const batch = firestoreDb.batch();
+          batch.update(firestoreDb.collection("bookings").doc(id), { status: status });
+          batch.set(firestoreDb.collection("availability").doc(id), { status: status }, { merge: true });
+          await batch.commit();
           return true;
         } catch (e) {
           console.warn("LashDB: Fallback local para atualizar agendamento.", e);
@@ -460,7 +500,10 @@
     deleteBooking: async function(id) {
       if (useFirebase) {
         try {
-          await firestoreDb.collection("bookings").doc(id).delete();
+          const batch = firestoreDb.batch();
+          batch.delete(firestoreDb.collection("bookings").doc(id));
+          batch.delete(firestoreDb.collection("availability").doc(id));
+          await batch.commit();
           return true;
         } catch (e) {
           console.warn("LashDB: Fallback local para deletar agendamento.", e);
@@ -481,7 +524,14 @@
     updateBooking: async function(booking) {
       if (useFirebase) {
         try {
-          await firestoreDb.collection("bookings").doc(booking.id).set(booking);
+          const batch = firestoreDb.batch();
+          batch.set(firestoreDb.collection("bookings").doc(booking.id), booking);
+          batch.set(firestoreDb.collection("availability").doc(booking.id), toAvailabilityDoc(booking), { merge: true });
+          const phone = cleanPhoneDigits(booking.clientPhone);
+          if (phone) {
+            batch.set(firestoreDb.collection("client_profiles").doc(phone), toClientProfileDoc(booking), { merge: true });
+          }
+          await batch.commit();
           return true;
         } catch (e) {
           console.warn("LashDB: Fallback local para atualizar agendamento completo.", e);
@@ -505,6 +555,45 @@
         }
         return false;
       }
+    },
+
+    // Disponibilidade pública (sem PII) — usada pelo site do cliente para saber horários ocupados
+    getAvailability: async function() {
+      if (useFirebase) {
+        try {
+          const snapshot = await withTimeout(firestoreDb.collection("availability").get(), 4000);
+          const list = [];
+          snapshot.forEach(doc => list.push(doc.data()));
+          return list;
+        } catch (e) {
+          console.warn("LashDB: Fallback local para disponibilidade.", e);
+          if (!isFirebaseConfigured) useFirebase = false;
+          return getLocal(STORAGE_KEYS.BOOKINGS, []);
+        }
+      } else {
+        return getLocal(STORAGE_KEYS.BOOKINGS, []);
+      }
+    },
+
+    // Perfil de cliente por telefone (auto-preenchimento de anamnese) — get direto, nunca list
+    getClientProfile: async function(phone) {
+      const cleanPhone = cleanPhoneDigits(phone);
+      if (!cleanPhone) return null;
+
+      if (useFirebase) {
+        try {
+          const doc = await withTimeout(firestoreDb.collection("client_profiles").doc(cleanPhone).get(), 4000);
+          return doc.exists ? doc.data() : null;
+        } catch (e) {
+          console.warn("LashDB: Fallback local para perfil de cliente.", e);
+          if (!isFirebaseConfigured) useFirebase = false;
+        }
+      }
+
+      const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
+      const matching = list.filter(b => cleanPhoneDigits(b.clientPhone) === cleanPhone && b.anamnese && Object.keys(b.anamnese).length > 0);
+      matching.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
+      return matching[0] || null;
     },
 
     // --- ESTOQUE (PRODUTOS) ---

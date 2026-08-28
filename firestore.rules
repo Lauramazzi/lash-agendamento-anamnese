@@ -1,11 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Agendamentos: Clientes leem (checar horarios e autopreencher ficha) e criam.
-    // So a Admin autenticada pode alterar status ou excluir.
+    // Agendamentos: contem dados sensiveis (anamnese/saude). Clientes só criam;
+    // leitura (get ou list) exige Admin autenticada.
     match /bookings/{document} {
-      allow read, create: if true;
+      allow read: if request.auth != null;
+      allow create: if true;
       allow update, delete: if request.auth != null;
+    }
+    // Disponibilidade publica (sem PII): so data/hora/duracao/status, para o site
+    // do cliente saber quais horarios ja estao ocupados sem expor a anamnese.
+    match /availability/{document} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if request.auth != null;
+    }
+    // Perfil de retorno por telefone (auto-preenchimento de anamnese): so pode ser
+    // lido por quem ja sabe o telefone exato (get), nunca listado (list) por terceiros.
+    match /client_profiles/{document} {
+      allow get: if true;
+      allow list: if request.auth != null;
+      allow create, update: if true;
+      allow delete: if request.auth != null;
     }
     // Caixa, Estoque e Fechamentos: Apenas Admin autenticado le e altera
     match /products/{document} {

@@ -472,6 +472,17 @@
                   <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Alterar Senha do Painel</button>
                 </form>
               </div>
+
+              <!-- Sincronização única pós-migração de segurança (availability/client_profiles) -->
+              <div class="section-card">
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Sincronizar Disponibilidade</h3>
+                <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">
+                  Execute uma vez após a atualização de segurança: reconstrói os dados públicos de horários ocupados
+                  e os perfis de retorno por telefone a partir dos agendamentos já existentes. Agendamentos novos
+                  já são sincronizados automaticamente — este botão só é necessário para os que já existiam antes da atualização.
+                </p>
+                <button type="button" id="btn-sync-availability" class="btn btn-secondary" onclick="sincronizarDisponibilidade()">Sincronizar Agora</button>
+              </div>
             </div>
 
             <!-- Sub-Aba 3.2: Horários de Expediente -->

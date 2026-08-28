@@ -15,7 +15,7 @@
     currentMonth: new Date().getMonth(), // 0-indexed
     workingHours: {},
     blockedDates: [],
-    existingBookings: [],
+    availability: [],
     config: {},
     anamneseAnswers: {}
   };
@@ -117,7 +117,7 @@
       // Carrega Expediente, Bloqueios e Agendamentos
       state.workingHours = await db.getWorkingHours();
       state.blockedDates = await db.getBlockedDates();
-      state.existingBookings = await db.getBookings();
+      state.availability = await db.getAvailability();
 
       // Renderiza Formulário de Anamnese
       renderAnamneseForm();
@@ -355,7 +355,7 @@
     // Carrega bloqueios de horário parcial
     const dayBlocks = state.blockedDates.filter(b => b.date === dateStr && !b.allDay);
     // Carrega agendamentos existentes na mesma data
-    const dayBookings = state.existingBookings.filter(b => b.bookingDate === dateStr && b.status !== "Cancelado");
+    const dayBookings = state.availability.filter(b => b.bookingDate === dateStr && b.status !== "Cancelado");
 
     const serviceDuration = state.selectedService ? state.selectedService.duration : 60;
 
@@ -471,19 +471,14 @@
       return;
     }
     
-    const cleanPhone = (s) => String(s || '').replace(/\D/g, "");
-    const matching = state.existingBookings.filter(b => cleanPhone(b.clientPhone) === phoneVal && b.anamnese && Object.keys(b.anamnese).length > 0);
-    
-    if (matching.length === 0) {
+    const latest = await db.getClientProfile(phoneVal);
+
+    if (!latest) {
       const banner = document.getElementById("anamnese-auto-load-banner");
       if (banner) banner.remove();
       return;
     }
-    
-    // Ordena pelo agendamento mais recente
-    matching.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
-    const latest = matching[0];
-    
+
     // Auto-preenche campos cadastrais
     document.getElementById("f_nome").value = latest.clientName || "";
     if (latest.clientBirth) document.getElementById("f_nascimento").value = latest.clientBirth;

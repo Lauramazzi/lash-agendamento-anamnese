@@ -440,7 +440,10 @@
     if (!container) return;
     const toast = document.createElement("div");
     toast.className = `toast-notification ${type}`;
-    toast.innerHTML = `<span class="toast-text">${message}</span>`;
+    const span = document.createElement("span");
+    span.className = "toast-text";
+    span.textContent = message;
+    toast.appendChild(span);
     container.appendChild(toast);
     
     setTimeout(() => {
@@ -1572,6 +1575,33 @@
       }
     }
   }
+
+  // Migração única: backfill de "availability" e "client_profiles" a partir dos
+  // agendamentos já existentes (criados antes da atualização de segurança que
+  // passou a derivar esses dados públicos automaticamente a cada escrita nova).
+  window.sincronizarDisponibilidade = async function() {
+    const btn = document.getElementById("btn-sync-availability");
+    if (!confirm("Isso vai reprocessar todos os agendamentos existentes para reconstruir os dados públicos de disponibilidade. Pode levar alguns instantes. Continuar?")) {
+      return;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = "Sincronizando..."; }
+
+    try {
+      const bookings = await db.getBookings();
+      let ok = 0;
+      for (const booking of bookings) {
+        const success = await db.updateBooking(booking);
+        if (success) ok++;
+      }
+      showToast(`Sincronização concluída: ${ok}/${bookings.length} agendamentos processados.`, 'success');
+    } catch (err) {
+      console.error(err);
+      showToast("Erro ao sincronizar disponibilidade.", 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "Sincronizar Agora"; }
+    }
+  };
 
   function renderWorkingHours() {
     let html = "";
