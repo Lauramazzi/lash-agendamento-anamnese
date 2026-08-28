@@ -464,24 +464,14 @@
     },
     updateBookingStatus: async function(id, status) {
       if (useFirebase) {
-        try {
-          const batch = firestoreDb.batch();
-          batch.update(firestoreDb.collection("bookings").doc(id), { status: status });
-          batch.set(firestoreDb.collection("availability").doc(id), { status: status }, { merge: true });
-          await batch.commit();
-          return true;
-        } catch (e) {
-          console.warn("LashDB: Fallback local para atualizar agendamento.", e);
-          if (!isFirebaseConfigured) useFirebase = false;
-          const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
-          const idx = list.findIndex(b => b.id === id);
-          if (idx !== -1) {
-            list[idx].status = status;
-            saveLocal(STORAGE_KEYS.BOOKINGS, list);
-            return true;
-          }
-          return false;
-        }
+        // Sem fallback silencioso: se a escrita falhar, o erro propaga para o
+        // chamador em vez de fingir sucesso e gravar só no localStorage deste
+        // navegador (invisível pra sempre no Firestore real).
+        const batch = firestoreDb.batch();
+        batch.update(firestoreDb.collection("bookings").doc(id), { status: status });
+        batch.set(firestoreDb.collection("availability").doc(id), { status: status }, { merge: true });
+        await batch.commit();
+        return true;
       } else {
         const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
         const idx = list.findIndex(b => b.id === id);
@@ -495,20 +485,11 @@
     },
     deleteBooking: async function(id) {
       if (useFirebase) {
-        try {
-          const batch = firestoreDb.batch();
-          batch.delete(firestoreDb.collection("bookings").doc(id));
-          batch.delete(firestoreDb.collection("availability").doc(id));
-          await batch.commit();
-          return true;
-        } catch (e) {
-          console.warn("LashDB: Fallback local para deletar agendamento.", e);
-          if (!isFirebaseConfigured) useFirebase = false;
-          const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
-          const filtered = list.filter(b => b.id !== id);
-          saveLocal(STORAGE_KEYS.BOOKINGS, filtered);
-          return true;
-        }
+        const batch = firestoreDb.batch();
+        batch.delete(firestoreDb.collection("bookings").doc(id));
+        batch.delete(firestoreDb.collection("availability").doc(id));
+        await batch.commit();
+        return true;
       } else {
         const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
         const filtered = list.filter(b => b.id !== id);
@@ -519,28 +500,15 @@
 
     updateBooking: async function(booking) {
       if (useFirebase) {
-        try {
-          const batch = firestoreDb.batch();
-          batch.set(firestoreDb.collection("bookings").doc(booking.id), booking);
-          batch.set(firestoreDb.collection("availability").doc(booking.id), toAvailabilityDoc(booking), { merge: true });
-          const phone = cleanPhoneDigits(booking.clientPhone);
-          if (phone) {
-            batch.set(firestoreDb.collection("client_profiles").doc(phone), toClientProfileDoc(booking), { merge: true });
-          }
-          await batch.commit();
-          return true;
-        } catch (e) {
-          console.warn("LashDB: Fallback local para atualizar agendamento completo.", e);
-          if (!isFirebaseConfigured) useFirebase = false;
-          const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
-          const idx = list.findIndex(b => b.id === booking.id);
-          if (idx !== -1) {
-            list[idx] = booking;
-            saveLocal(STORAGE_KEYS.BOOKINGS, list);
-            return true;
-          }
-          return false;
+        const batch = firestoreDb.batch();
+        batch.set(firestoreDb.collection("bookings").doc(booking.id), booking);
+        batch.set(firestoreDb.collection("availability").doc(booking.id), toAvailabilityDoc(booking), { merge: true });
+        const phone = cleanPhoneDigits(booking.clientPhone);
+        if (phone) {
+          batch.set(firestoreDb.collection("client_profiles").doc(phone), toClientProfileDoc(booking), { merge: true });
         }
+        await batch.commit();
+        return true;
       } else {
         const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
         const idx = list.findIndex(b => b.id === booking.id);

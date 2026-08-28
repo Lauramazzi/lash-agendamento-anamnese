@@ -384,30 +384,37 @@
     dom.dStatusSelect.addEventListener("change", async (e) => {
       if (state.selectedBooking) {
         const statusValue = e.target.value;
-        const success = await db.updateBookingStatus(state.selectedBooking.id, statusValue);
-        if (success) {
-          state.selectedBooking.status = statusValue;
-          
-          if (statusValue === "Confirmado") {
-            showToast(`Agendamento de ${state.selectedBooking.clientName} confirmado!`, 'success');
-          } else if (statusValue === "Concluído") {
-            // Se concluído, gera lançamento automático de Receita no caixa!
-            await db.addTransaction({
-              description: `Atendimento: ${state.selectedBooking.clientName} (${state.selectedBooking.serviceName})`,
-              type: "Receita",
-              value: parseFloat(state.selectedBooking.servicePrice),
-              date: state.selectedBooking.bookingDate
-            });
-            showToast(`Atendimento de ${state.selectedBooking.clientName} concluído e lançado no financeiro!`, 'success');
-          } else if (statusValue === "Cancelado") {
-            showToast(`Agendamento de ${state.selectedBooking.clientName} cancelado.`, 'warning');
-          } else {
-            showToast(`Status atualizado para "${statusValue}".`, 'success');
-          }
+        const previousValue = state.selectedBooking.status;
+        try {
+          const success = await db.updateBookingStatus(state.selectedBooking.id, statusValue);
+          if (success) {
+            state.selectedBooking.status = statusValue;
 
-          await loadAllData();
-          refreshAgendaView();
-          renderFinanceDashboard();
+            if (statusValue === "Confirmado") {
+              showToast(`Agendamento de ${state.selectedBooking.clientName} confirmado!`, 'success');
+            } else if (statusValue === "Concluído") {
+              // Se concluído, gera lançamento automático de Receita no caixa!
+              await db.addTransaction({
+                description: `Atendimento: ${state.selectedBooking.clientName} (${state.selectedBooking.serviceName})`,
+                type: "Receita",
+                value: parseFloat(state.selectedBooking.servicePrice),
+                date: state.selectedBooking.bookingDate
+              });
+              showToast(`Atendimento de ${state.selectedBooking.clientName} concluído e lançado no financeiro!`, 'success');
+            } else if (statusValue === "Cancelado") {
+              showToast(`Agendamento de ${state.selectedBooking.clientName} cancelado.`, 'warning');
+            } else {
+              showToast(`Status atualizado para "${statusValue}".`, 'success');
+            }
+
+            await loadAllData();
+            refreshAgendaView();
+            renderFinanceDashboard();
+          }
+        } catch (err) {
+          console.error(err);
+          dom.dStatusSelect.value = previousValue;
+          showToast("Erro ao salvar o status. Verifique sua conexão e tente novamente.", 'error');
         }
       }
     });
