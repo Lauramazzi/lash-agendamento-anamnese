@@ -443,22 +443,18 @@
       booking.preenchido_em = new Date().toLocaleString("pt-BR");
 
       if (useFirebase) {
-        try {
-          const batch = firestoreDb.batch();
-          batch.set(firestoreDb.collection("bookings").doc(booking.id), booking);
-          batch.set(firestoreDb.collection("availability").doc(booking.id), toAvailabilityDoc(booking));
-          const phone = cleanPhoneDigits(booking.clientPhone);
-          if (phone) {
-            batch.set(firestoreDb.collection("client_profiles").doc(phone), toClientProfileDoc(booking), { merge: true });
-          }
-          await batch.commit();
-        } catch (e) {
-          console.warn("LashDB: Fallback local para adicionar agendamento.", e);
-          if (!isFirebaseConfigured) useFirebase = false;
-          const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
-          list.push(booking);
-          saveLocal(STORAGE_KEYS.BOOKINGS, list);
+        // Sem fallback silencioso aqui: se a escrita falhar, o erro propaga para
+        // quem chamou (app.js), que avisa a cliente e oferece o WhatsApp da loja
+        // como confirmação manual — em vez de mostrar sucesso falso e perder o
+        // agendamento escondido no localStorage de um único navegador.
+        const batch = firestoreDb.batch();
+        batch.set(firestoreDb.collection("bookings").doc(booking.id), booking);
+        batch.set(firestoreDb.collection("availability").doc(booking.id), toAvailabilityDoc(booking));
+        const phone = cleanPhoneDigits(booking.clientPhone);
+        if (phone) {
+          batch.set(firestoreDb.collection("client_profiles").doc(phone), toClientProfileDoc(booking), { merge: true });
         }
+        await batch.commit();
       } else {
         const list = getLocal(STORAGE_KEYS.BOOKINGS, []);
         list.push(booking);

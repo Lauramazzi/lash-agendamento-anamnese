@@ -753,18 +753,53 @@
     try {
       // Salva no Banco (Local ou Firestore)
       const booking = await db.addBooking(payload);
-      
+
       // Renderiza resumo de sucesso
       renderSuccess(booking);
-      
+
       // Avança para passo 4
       goToStep(4);
     } catch(e) {
       console.error(e);
-      showHint("Erro ao processar agendamento. Verifique sua conexão e tente novamente.");
+      showBookingErrorWhatsapp(payload);
       dom.btnNext.disabled = false;
       dom.btnNext.textContent = "Confirmar Agendamento";
     }
+  }
+
+  // Quando o Firestore falha de verdade (não é o modo local intencional), não
+  // fingimos sucesso: avisamos a cliente e oferecemos o WhatsApp da loja com os
+  // dados já preenchidos, para confirmação manual imediata.
+  function showBookingErrorWhatsapp(payload) {
+    let banner = document.getElementById("booking-error-banner");
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.id = "booking-error-banner";
+      banner.className = "demo-banner";
+      banner.style.textAlign = "left";
+      dom.anamneseForm.insertBefore(banner, dom.anamneseForm.firstChild);
+    }
+
+    const phone = state.config.whatsappPhone || "5511999999999";
+    const dataBr = payload.bookingDate ? new Date(payload.bookingDate + "T00:00:00").toLocaleDateString("pt-BR") : "";
+    const textMsg = `Olá! Tentei agendar pelo site mas o sistema não confirmou automaticamente. Seguem meus dados para agendar manualmente:
+*Nome:* ${payload.clientName}
+*WhatsApp:* ${payload.clientPhone}
+*Serviço:* ${payload.serviceName}
+*Data desejada:* ${dataBr} às ${payload.bookingTime}h
+
+Poderia confirmar meu horário, por favor?`;
+    const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(textMsg)}`;
+
+    banner.innerHTML = `
+      ⚠️ <strong>Não conseguimos confirmar seu agendamento automaticamente.</strong>
+      Clique no botão abaixo para enviar seus dados direto pelo WhatsApp e garantirmos seu horário manualmente.
+      <br><br>
+      <a href="${waUrl}" target="_blank" class="btn btn-whatsapp" style="display:inline-flex; align-items:center; gap:8px;">
+        Falar no WhatsApp agora
+      </a>
+    `;
+    banner.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function renderSuccess(booking) {
