@@ -1,36 +1,39 @@
 /* style.css - Sistema de Design Unificado (Lash Design & Agendamento) */
 
 :root {
-  /* Cores de Alto Contraste - Rose Gold & Preto Matte (Mais legível e nítido) */
-  --cream: #FAF6F2;          /* Champagne de fundo suave */
-  --cream-lite: #FCFAF7;     /* Creme suave para campos e fundos secundários */
-  --card: #FFFFFF;           /* Cards em Branco Puro para contraste e relevo */
-  --espresso: #1A120F;       /* Preto Café profundo (máxima legibilidade para textos) */
-  --mocha: #DFA89B;          /* Rose Gold Dourado suave/médio */
-  --bronze: #C97A6B;         /* Rose Gold Metálico principal (mais nítido e vivo) */
-  --bronze-deep: #954C3E;    /* Rose Gold Escuro e Sólido (para botões, links e status) */
-  --muted: #4F433F;          /* Cinza Rosado Escuro (Substitui o cinza claro, agora muito legível) */
-  --line: #D0C3B5;           /* Bordas e divisões mais escuras para dar contorno visível */
-  --white: #FFFFFF;
+  /* Identidade "Preto, Dourado & Rose Gold" -- nomes das variaveis mantidos
+     por compatibilidade (usados em centenas de lugares), so os VALORES
+     mudaram de um tema claro (creme/rose-gold-claro) para um tema escuro
+     (preto profundo/dourado/rose-gold). */
+  --cream: #0d0b0c;          /* Fundo dominante: preto profundo (era creme claro) */
+  --cream-lite: #f3ece3;     /* Texto/realces claros sobre fundo escuro (era creme mais claro) */
+  --card: #1a1516;           /* Cards: "preto elevado" (era branco puro) */
+  --espresso: #f3ece3;       /* Texto principal: claro sobre fundo escuro (era quase-preto) */
+  --mocha: #b8757c;          /* Rose gold -- acento secundario/decorativo */
+  --bronze: #d4af37;         /* Dourado -- acento principal/acao (era rose gold medio) */
+  --bronze-deep: #a8863f;    /* Dourado escuro/solido para estados ativos */
+  --muted: rgba(243, 236, 227, 0.62); /* Texto secundario claro semi-transparente */
+  --line: rgba(243, 236, 227, 0.14);  /* Divisorias claras e sutis sobre fundo escuro */
+  --white: #f3ece3;          /* Texto/detalhes claros sobre fundo escuro (era branco puro; usado como texto, nao como superficie) */
 
-  /* Estados e Alertas */
-  --alert: #C62828;
-  --alert-bg: #FFEBEE;
-  --alert-bd: #FFCDD2;
-  
-  --aten: #D4AF37;
-  --aten-bg: #FFFDE7;
-  --aten-bd: #FFF9C4;
-  
-  --ok: #2E7D32;
-  --ok-bg: #E8F5E9;
-  
+  /* Estados e Alertas (cor semantica -- nao segue o acento dourado/rose) */
+  --alert: #ef5350;
+  --alert-bg: rgba(239, 83, 80, 0.14);
+  --alert-bd: rgba(239, 83, 80, 0.35);
+
+  --aten: #e0a020;
+  --aten-bg: rgba(224, 160, 32, 0.14);
+  --aten-bd: rgba(224, 160, 32, 0.35);
+
+  --ok: #4caf50;
+  --ok-bg: rgba(76, 175, 80, 0.14);
+
   --radius: 10px;
   --radius-sm: 6px;
   --radius-md: 8px;
-  
+
   --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  --shadow: 0 4px 20px rgba(28, 24, 22, 0.04);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
 /* Reset Global */
@@ -45,7 +48,7 @@ body {
   font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.5;
-  background: radial-gradient(ellipse 120% 80% at 50% -10%, var(--cream-lite), var(--cream) 55%, #E5DDD0 100%);
+  background: radial-gradient(ellipse 120% 80% at 50% -10%, #221b1c, #0d0b0c 55%, #000000 100%);
   min-height: 100vh;
   padding-bottom: 80px;
 }
@@ -121,12 +124,13 @@ header {
   transform: translateX(-50%);
   color: var(--bronze);
   font-size: 9px;
-  background: var(--cream-lite);
+  background: var(--cream);
   padding: 0 5px;
 }
 
-/* Layout Principal */
-main {
+/* Layout Principal (index.html). Exclui .admin-body para não colidir com o
+   <main> do painel administrativo, que tem seu próprio layout em admin-main. */
+main:not(.admin-body) {
   max-width: 680px;
   margin: 0 auto;
   padding: 16px;
@@ -173,8 +177,8 @@ main {
   font-family: 'Playfair Display', serif;
   font-size: 14px;
   font-weight: 600;
-  color: var(--cream-lite);
-  background: linear-gradient(180deg, #C97A6B, #954C3E);
+  color: #0d0b0c;
+  background: linear-gradient(180deg, #d4af37, #a8863f);
   width: 28px;
   height: 28px;
   border-radius: 9px;
@@ -234,14 +238,14 @@ main {
   font-weight: 500;
 }
 .progress-step.active {
-  background: linear-gradient(180deg, #C97A6B, #954C3E);
+  background: linear-gradient(180deg, #d4af37, #a8863f);
   border-color: var(--bronze-deep);
-  color: var(--cream-lite);
+  color: #0d0b0c;
 }
 .progress-step.completed {
   background: var(--mocha);
   border-color: var(--mocha);
-  color: var(--cream-lite);
+  color: #0d0b0c;
 }
 
 /* Wizard Steps */
@@ -283,7 +287,7 @@ main {
 }
 .service-item.selected {
   border-color: var(--bronze-deep);
-  background-color: #F9ECE9;
+  background-color: rgba(184, 117, 124, 0.14);
   box-shadow: 0 4px 15px rgba(194, 146, 133, 0.1);
 }
 .service-info {
@@ -411,7 +415,7 @@ main {
   cursor: default;
 }
 .calendar-cell.past, .calendar-cell.disabled {
-  color: var(--line);
+  color: rgba(243, 236, 227, 0.28);
   text-decoration: line-through;
   cursor: not-allowed;
 }
@@ -420,8 +424,8 @@ main {
   color: var(--bronze-deep);
 }
 .calendar-cell.selected {
-  background: linear-gradient(180deg, #C97A6B, #954C3E);
-  color: var(--cream-lite);
+  background: linear-gradient(180deg, #d4af37, #a8863f);
+  color: #0d0b0c;
   font-weight: 600;
 }
 
@@ -448,7 +452,7 @@ main {
 }
 .time-slot {
   border: 1px solid var(--line);
-  background: var(--white);
+  background: var(--card);
   border-radius: 8px;
   padding: 10px;
   font-size: 13px;
@@ -462,14 +466,14 @@ main {
   background: var(--cream-lite);
 }
 .time-slot.selected {
-  background: linear-gradient(180deg, #C97A6B, #954C3E);
+  background: linear-gradient(180deg, #d4af37, #a8863f);
   border-color: var(--bronze-deep);
-  color: var(--cream-lite);
+  color: #0d0b0c;
 }
 .time-slot.disabled {
-  background: #EEE;
-  border-color: #DDD;
-  color: #AAA;
+  background: rgba(243, 236, 227, 0.03);
+  border-color: rgba(243, 236, 227, 0.08);
+  color: rgba(243, 236, 227, 0.3);
   text-decoration: line-through;
   cursor: not-allowed;
   opacity: 0.6;
@@ -491,11 +495,11 @@ label.lb {
 label.lb .req {
   color: var(--bronze-deep);
 }
-input[type=text], input[type=tel], input[type=date], input[type=email], select, textarea {
+input[type=text], input[type=tel], input[type=date], input[type=email], input[type=password], select, textarea {
   width: 100%;
   font-family: 'Montserrat', sans-serif;
   font-size: 15px;
-  color: var(--espresso);
+  color: #0d0b0c;
   background: var(--cream-lite);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -509,8 +513,8 @@ textarea {
 }
 input:focus, select:focus, textarea:focus {
   border-color: var(--bronze);
-  background: var(--white);
-  box-shadow: 0 0 0 3px rgba(166, 124, 82, 0.15);
+  background: var(--cream-lite);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
 }
 select {
   appearance: none;
@@ -534,19 +538,19 @@ select {
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   font-size: 14px;
-  color: var(--muted);
+  color: rgba(13, 11, 12, 0.55); /* .seg tem fundo claro; texto padrao precisa ser escuro */
   padding: 8px 22px;
   border-radius: 999px;
   cursor: pointer;
   transition: var(--transition);
 }
 .seg button.on-sim {
-  background: linear-gradient(180deg, #C97A6B, #954C3E);
-  color: var(--cream-lite);
+  background: linear-gradient(180deg, #d4af37, #a8863f);
+  color: #0d0b0c;
 }
 .seg button.on-nao {
-  background: var(--espresso);
-  color: var(--cream-lite);
+  background: var(--card);
+  color: var(--muted);
 }
 
 .detail-wrap {
@@ -568,7 +572,7 @@ select {
   border-radius: 10px;
   margin-bottom: 10px;
   cursor: pointer;
-  background: var(--white);
+  background: var(--card);
   transition: var(--transition);
 }
 .term:hover {
@@ -594,7 +598,7 @@ select {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to top, rgba(250, 246, 242, .98), rgba(250, 246, 242, .85));
+  background: linear-gradient(to top, rgba(13, 11, 12, .98), rgba(13, 11, 12, .85));
   backdrop-filter: blur(8px);
   border-top: 1px solid var(--line);
   z-index: 20;
@@ -627,14 +631,14 @@ select {
   transition: var(--transition);
 }
 .btn-primary {
-  background: linear-gradient(180deg, #C97A6B, #954C3E);
-  color: var(--cream-lite);
+  background: linear-gradient(180deg, #d4af37, #a8863f);
+  color: #0d0b0c;
 }
 .btn-primary:hover {
   filter: brightness(1.08);
 }
 .btn-secondary {
-  background: var(--white);
+  background: var(--card);
   color: var(--espresso);
   border-color: var(--line);
 }
@@ -664,16 +668,16 @@ select {
   width: 66px;
   height: 66px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #C97A6B, #954C3E);
+  background: linear-gradient(180deg, #d4af37, #a8863f);
   display: grid;
   place-items: center;
   margin: 0 auto 20px;
-  color: var(--cream-lite);
+  color: #0d0b0c;
   font-size: 30px;
   font-weight: bold;
 }
 .success-details {
-  background: var(--white);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   padding: 20px;
@@ -722,7 +726,7 @@ select {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: radial-gradient(ellipse 120% 80% at 50% -10%, var(--cream-lite), var(--cream) 55%, #E5DDD0 100%);
+  background: radial-gradient(ellipse 120% 80% at 50% -10%, #221b1c, #0d0b0c 55%, #000000 100%);
 }
 .gate-box {
   width: 100%;
@@ -794,8 +798,8 @@ select {
   background: var(--cream-lite);
 }
 .admin-nav-tab.active {
-  color: var(--cream-lite);
-  background: linear-gradient(180deg, #C97A6B, #954C3E);
+  color: #0d0b0c;
+  background: linear-gradient(180deg, #d4af37, #a8863f);
 }
 
 /* Painéis de Abas */
@@ -884,7 +888,7 @@ select {
   border-bottom: 1px solid var(--line);
 }
 .admin-table th {
-  background-color: var(--cream-lite);
+  background-color: rgba(243, 236, 227, 0.05);
   font-family: 'Playfair Display', serif;
   font-size: 14.5px;
   font-weight: 600;
@@ -896,7 +900,7 @@ select {
   transition: var(--transition);
 }
 .admin-table tbody tr:hover {
-  background-color: #FBF0E3;
+  background-color: rgba(184, 117, 124, 0.12);
 }
 .admin-table tr.hasalert {
   border-left: 3px solid var(--alert);
@@ -922,8 +926,9 @@ select {
   background: var(--ok-bg);
 }
 .badge.concluido {
-  color: #FFF;
-  background-color: var(--espresso);
+  color: #42a5f5;
+  background-color: rgba(66, 165, 245, 0.14);
+  border: 1px solid rgba(66, 165, 245, 0.35);
 }
 .badge.cancelado {
   color: var(--alert);
@@ -958,7 +963,7 @@ select {
 }
 .agenda-row.pendente { border-left-color: var(--aten); }
 .agenda-row.confirmado { border-left-color: var(--ok); }
-.agenda-row.concluido { border-left-color: var(--espresso); }
+.agenda-row.concluido { border-left-color: #42a5f5; }
 .agenda-row.cancelado { border-left-color: var(--alert); opacity: 0.55; }
 .agenda-row.cancelado .agenda-client { text-decoration: line-through; }
 .agenda-row.is-past:not(.cancelado) { opacity: 0.6; }
@@ -988,7 +993,7 @@ select {
   height: 38px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--mocha), var(--bronze-deep));
-  color: var(--white);
+  color: #0d0b0c;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1033,7 +1038,7 @@ select {
   text-transform: uppercase;
   letter-spacing: .04em;
   color: var(--bronze-deep);
-  background: #FBF0E3;
+  background: rgba(184, 117, 124, 0.12);
   border: 1px solid var(--bronze);
   padding: 1px 7px;
   border-radius: 999px;
@@ -1162,7 +1167,7 @@ select {
   padding: 10px 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--white);
+  background: var(--card);
   align-items: center;
   margin-bottom: 8px;
 }
@@ -1349,11 +1354,11 @@ input:checked + .slider::before {
 }
 .history-item.pendente { border-left-color: var(--aten); }
 .history-item.confirmado { border-left-color: var(--ok); }
-.history-item.concluido { border-left-color: var(--espresso); }
+.history-item.concluido { border-left-color: #42a5f5; }
 .history-item.cancelado { border-left-color: var(--alert); opacity: 0.6; }
 .history-item.is-current {
   border-color: var(--bronze);
-  background: #FBF0E3;
+  background: rgba(184, 117, 124, 0.12);
   box-shadow: 0 0 0 2px rgba(201, 122, 107, 0.15);
 }
 .history-date {
@@ -1378,7 +1383,7 @@ input:checked + .slider::before {
   text-transform: uppercase;
   letter-spacing: .03em;
   color: var(--bronze-deep);
-  background: #FBF0E3;
+  background: rgba(184, 117, 124, 0.12);
   border: 1px solid var(--bronze);
   padding: 1px 6px;
   border-radius: 999px;
@@ -1489,7 +1494,7 @@ input:checked + .slider::before {
   pointer-events: none;
 }
 .toast-notification {
-  background: var(--white);
+  background: var(--card);
   border: 1px solid var(--line);
   border-left: 4px solid var(--bronze);
   border-radius: var(--radius-sm);
@@ -1561,7 +1566,7 @@ input:checked + .slider::before {
   display: inline-flex;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--white);
+  background: var(--card);
   overflow: hidden;
   margin-left: auto;
 }
@@ -1577,8 +1582,8 @@ input:checked + .slider::before {
   transition: var(--transition);
 }
 .selector-btn.active {
-  background: linear-gradient(180deg, #C97A6B, #954C3E);
-  color: var(--cream-lite);
+  background: linear-gradient(180deg, #d4af37, #a8863f);
+  color: #0d0b0c;
 }
 
 #agenda-week-view {
@@ -1612,7 +1617,7 @@ input:checked + .slider::before {
   }
 }
 .weekly-col {
-  background: var(--white);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 8px;
@@ -1623,7 +1628,7 @@ input:checked + .slider::before {
 }
 .weekly-col.is-today {
   border-color: var(--bronze);
-  background: #FCF7F1;
+  background: rgba(184, 117, 124, 0.12);
 }
 .weekly-col-header {
   font-size: 10px;
@@ -1679,7 +1684,7 @@ input:checked + .slider::before {
   border-left-color: var(--ok);
 }
 .weekly-card.concluido {
-  border-left-color: var(--espresso);
+  border-left-color: #42a5f5;
 }
 .weekly-card.cancelado {
   border-left-color: var(--alert);
@@ -1773,7 +1778,7 @@ input:checked + .slider::before {
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  background: rgba(246, 236, 221, 0.85);
+  background: rgba(13, 11, 12, 0.85);
   backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
@@ -1833,7 +1838,7 @@ input:checked + .slider::before {
 .hero {
   text-align: center;
   padding: 60px 20px;
-  background: radial-gradient(circle at center, rgba(251,244,230,0.9), rgba(239,223,203,0.4));
+  background: radial-gradient(circle at center, rgba(34,27,28,0.9), rgba(13,11,12,0.4));
   border-radius: var(--radius);
   margin-bottom: 30px;
   border: 1px solid var(--line);
@@ -1965,8 +1970,8 @@ input:checked + .slider::before {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #C97A6B, #954C3E);
-  color: var(--cream-lite);
+  background: linear-gradient(180deg, #d4af37, #a8863f);
+  color: #0d0b0c;
   font-family: 'Playfair Display', serif;
   font-weight: bold;
   font-size: 15px;
@@ -2186,7 +2191,7 @@ input:checked + .slider::before {
   height: 36px;
   border-radius: 50%;
   background: var(--bronze);
-  color: var(--white);
+  color: #0d0b0c;
   display: grid;
   place-items: center;
   font-weight: bold;
@@ -2227,7 +2232,7 @@ input:checked + .slider::before {
 }
 .menu-item.active {
   background: var(--bronze);
-  color: var(--white);
+  color: #0d0b0c;
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(194, 146, 133, 0.2);
 }
@@ -2324,7 +2329,7 @@ input:checked + .slider::before {
 }
 .legend-dot.pendente { background: var(--aten-bg); border: 1px solid var(--aten-bd); }
 .legend-dot.confirmado { background: var(--ok-bg); border: 1px solid var(--ok); }
-.legend-dot.concluido { background: #E8F0FE; border: 1px solid #4285F4; }
+.legend-dot.concluido { background: rgba(66, 165, 245, 0.14); border: 1px solid #42a5f5; }
 .legend-dot.cancelado { background: var(--alert-bg); border: 1px solid var(--alert); }
 
 /* ESTILOS DE ESTOQUE (PRODUTOS) */
@@ -2384,7 +2389,7 @@ input:checked + .slider::before {
 }
 .qty-adjust-btn:hover {
   background: var(--bronze);
-  color: white;
+  color: #0d0b0c;
 }
 
 /* ESTILOS DE FINANCEIRO */
@@ -2394,7 +2399,7 @@ input:checked + .slider::before {
   margin-bottom: 20px;
 }
 .finance-tab-btn {
-  background: var(--white);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 10px 18px;
@@ -2404,9 +2409,9 @@ input:checked + .slider::before {
   transition: var(--transition);
 }
 .finance-tab-btn.active {
-  background: var(--espresso);
-  color: var(--white);
-  border-color: var(--espresso);
+  background: var(--bronze);
+  color: #0d0b0c;
+  border-color: var(--bronze);
 }
 
 .finance-stats-grid {
@@ -2431,7 +2436,7 @@ input:checked + .slider::before {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--white);
+  background: var(--card);
   border: 1px solid var(--line);
   padding: 12px 16px;
   border-radius: 8px;

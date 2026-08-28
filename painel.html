@@ -126,9 +126,9 @@
                     <button type="button" class="selector-btn" id="btn-view-week" onclick="setAgendaView('week')">Semana</button>
                   </div>
                   
-                  <div style="display: inline-flex; align-items: center; gap: 8px; background: var(--white); border: 1px solid var(--line); padding: 4px 8px; border-radius: 8px;">
+                  <div style="display: inline-flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); padding: 4px 8px; border-radius: 8px;">
                     <span style="font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;">Agenda Cliente:</span>
-                    <div class="agenda-status-selector" style="display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--white);">
+                    <div class="agenda-status-selector" style="display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--card);">
                       <button type="button" class="selector-btn active" id="btn-agenda-aberta" onclick="setAgendaStatus(true)" style="padding: 4px 10px; font-size: 11px;">Aberta</button>
                       <button type="button" class="selector-btn" id="btn-agenda-fechada" onclick="setAgendaStatus(false)" style="padding: 4px 10px; font-size: 11px; color: var(--alert);">Fechada</button>
                     </div>
@@ -471,6 +471,17 @@
                   </div>
                   <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Alterar Senha do Painel</button>
                 </form>
+              </div>
+
+              <!-- Sincronização única pós-migração de segurança (availability/client_profiles) -->
+              <div class="section-card">
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 15px;">Sincronizar Disponibilidade</h3>
+                <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">
+                  Execute uma vez após a atualização de segurança: reconstrói os dados públicos de horários ocupados
+                  e os perfis de retorno por telefone a partir dos agendamentos já existentes. Agendamentos novos
+                  já são sincronizados automaticamente — este botão só é necessário para os que já existiam antes da atualização.
+                </p>
+                <button type="button" id="btn-sync-availability" class="btn btn-secondary" onclick="sincronizarDisponibilidade()">Sincronizar Agora</button>
               </div>
             </div>
 

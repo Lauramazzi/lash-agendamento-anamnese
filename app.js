@@ -15,7 +15,7 @@
     currentMonth: new Date().getMonth(), // 0-indexed
     workingHours: {},
     blockedDates: [],
-    existingBookings: [],
+    availability: [],
     config: {},
     anamneseAnswers: {}
   };
@@ -117,7 +117,7 @@
       // Carrega Expediente, Bloqueios e Agendamentos
       state.workingHours = await db.getWorkingHours();
       state.blockedDates = await db.getBlockedDates();
-      state.existingBookings = await db.getBookings();
+      state.availability = await db.getAvailability();
 
       // Renderiza Formulário de Anamnese
       renderAnamneseForm();
@@ -355,7 +355,7 @@
     // Carrega bloqueios de horário parcial
     const dayBlocks = state.blockedDates.filter(b => b.date === dateStr && !b.allDay);
     // Carrega agendamentos existentes na mesma data
-    const dayBookings = state.existingBookings.filter(b => b.bookingDate === dateStr && b.status !== "Cancelado");
+    const dayBookings = state.availability.filter(b => b.bookingDate === dateStr && b.status !== "Cancelado");
 
     const serviceDuration = state.selectedService ? state.selectedService.duration : 60;
 
@@ -471,19 +471,14 @@
       return;
     }
     
-    const cleanPhone = (s) => String(s || '').replace(/\D/g, "");
-    const matching = state.existingBookings.filter(b => cleanPhone(b.clientPhone) === phoneVal && b.anamnese && Object.keys(b.anamnese).length > 0);
-    
-    if (matching.length === 0) {
+    const latest = await db.getClientProfile(phoneVal);
+
+    if (!latest) {
       const banner = document.getElementById("anamnese-auto-load-banner");
       if (banner) banner.remove();
       return;
     }
-    
-    // Ordena pelo agendamento mais recente
-    matching.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
-    const latest = matching[0];
-    
+
     // Auto-preenche campos cadastrais
     document.getElementById("f_nome").value = latest.clientName || "";
     if (latest.clientBirth) document.getElementById("f_nascimento").value = latest.clientBirth;
@@ -758,18 +753,53 @@
     try {
       // Salva no Banco (Local ou Firestore)
       const booking = await db.addBooking(payload);
-      
+
       // Renderiza resumo de sucesso
       renderSuccess(booking);
-      
+
       // Avança para passo 4
       goToStep(4);
     } catch(e) {
       console.error(e);
-      showHint("Erro ao processar agendamento. Verifique sua conexão e tente novamente.");
+      showBookingErrorWhatsapp(payload);
       dom.btnNext.disabled = false;
       dom.btnNext.textContent = "Confirmar Agendamento";
     }
+  }
+
+  // Quando o Firestore falha de verdade (não é o modo local intencional), não
+  // fingimos sucesso: avisamos a cliente e oferecemos o WhatsApp da loja com os
+  // dados já preenchidos, para confirmação manual imediata.
+  function showBookingErrorWhatsapp(payload) {
+    let banner = document.getElementById("booking-error-banner");
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.id = "booking-error-banner";
+      banner.className = "demo-banner";
+      banner.style.textAlign = "left";
+      dom.anamneseForm.insertBefore(banner, dom.anamneseForm.firstChild);
+    }
+
+    const phone = state.config.whatsappPhone || "5511999999999";
+    const dataBr = payload.bookingDate ? new Date(payload.bookingDate + "T00:00:00").toLocaleDateString("pt-BR") : "";
+    const textMsg = `Olá! Tentei agendar pelo site mas o sistema não confirmou automaticamente. Seguem meus dados para agendar manualmente:
+*Nome:* ${payload.clientName}
+*WhatsApp:* ${payload.clientPhone}
+*Serviço:* ${payload.serviceName}
+*Data desejada:* ${dataBr} às ${payload.bookingTime}h
+
+Poderia confirmar meu horário, por favor?`;
+    const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(textMsg)}`;
+
+    banner.innerHTML = `
+      ⚠️ <strong>Não conseguimos confirmar seu agendamento automaticamente.</strong>
+      Clique no botão abaixo para enviar seus dados direto pelo WhatsApp e garantirmos seu horário manualmente.
+      <br><br>
+      <a href="${waUrl}" target="_blank" class="btn btn-whatsapp" style="display:inline-flex; align-items:center; gap:8px;">
+        Falar no WhatsApp agora
+      </a>
+    `;
+    banner.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function renderSuccess(booking) {
