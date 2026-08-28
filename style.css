@@ -125,8 +125,9 @@ header {
   padding: 0 5px;
 }
 
-/* Layout Principal */
-main {
+/* Layout Principal (index.html). Exclui .admin-body para não colidir com o
+   <main> do painel administrativo, que tem seu próprio layout em admin-main. */
+main:not(.admin-body) {
   max-width: 680px;
   margin: 0 auto;
   padding: 16px;
